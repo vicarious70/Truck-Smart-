@@ -2,1247 +2,288 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Trucking + Budget Tracker (Offline)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trucking Made Simple</title>
   <style>
-    :root{
-      --bg:#0b0f17; --card:#121a27; --muted:#93a4bf; --text:#e7eefc;
-      --acc:#57c4ff; --good:#41d38c; --bad:#ff5f73; --warn:#ffcc66;
-      --line:#1f2a3c; --chip:#172238;
-      --radius:16px;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --pad:14px;
-      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:var(--font); background:linear-gradient(180deg,#070a10,#0b0f17 40%);
-      color:var(--text); padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
-    }
-    header{
-      position:sticky; top:0; z-index:10;
-      background:rgba(11,15,23,.78); backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
-      padding:10px 6px;
-    }
-    .topRow{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap}
-    .title{display:flex; flex-direction:column; gap:2px}
-    h1{font-size:16px; margin:0; letter-spacing:.2px}
-    .sub{font-size:12px; color:var(--muted)}
-    .tabs{display:flex; gap:8px; margin-top:10px; overflow:auto; padding-bottom:6px}
-    .tab{
-      border:1px solid var(--line); background:var(--chip); color:var(--text);
-      padding:10px 12px; border-radius:999px; font-size:13px; white-space:nowrap;
-      cursor:pointer; user-select:none;
-    }
-    .tab.active{border-color:rgba(87,196,255,.6); box-shadow:0 0 0 2px rgba(87,196,255,.18) inset}
-    main{max-width:980px; margin:12px auto 60px}
-    .grid{display:grid; grid-template-columns:1fr; gap:12px}
-    @media(min-width:880px){ .grid{grid-template-columns:1.1fr .9fr} }
-    .card{
-      background:rgba(18,26,39,.92); border:1px solid var(--line);
-      border-radius:var(--radius); box-shadow:var(--shadow); padding:var(--pad);
-    }
-    .card h2{margin:0 0 8px; font-size:15px}
-    .row{display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px}
-    @media(min-width:640px){ .row.two{grid-template-columns:1fr 1fr} .row.three{grid-template-columns:1fr 1fr 1fr} }
-    label{display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted)}
-    input, select, textarea{
-      width:100%; border:1px solid var(--line); background:#0d1421; color:var(--text);
-      border-radius:12px; padding:12px 12px; font-size:15px; outline:none;
-    }
-    textarea{min-height:80px; resize:vertical}
-    input:focus, select:focus, textarea:focus{
-      border-color:rgba(87,196,255,.7); box-shadow:0 0 0 3px rgba(87,196,255,.14);
-    }
-    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
-    button{
-      border:1px solid var(--line); background:var(--chip); color:var(--text);
-      padding:12px 14px; border-radius:12px; cursor:pointer; font-size:14px;
-    }
-    button.primary{border-color:rgba(87,196,255,.6); background:rgba(87,196,255,.12)}
-    button.good{border-color:rgba(65,211,140,.55); background:rgba(65,211,140,.12)}
-    button.bad{border-color:rgba(255,95,115,.55); background:rgba(255,95,115,.12)}
-    .pill{
-      display:inline-flex; gap:8px; align-items:center; padding:8px 10px;
-      border-radius:999px; border:1px solid var(--line); background:rgba(0,0,0,.12);
-      font-size:12px; color:var(--muted)
-    }
-    .kpis{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
-    .kpi{
-      flex:1; min-width:160px; background:rgba(0,0,0,.12);
-      border:1px solid var(--line); border-radius:14px; padding:10px 12px;
-    }
-    .kpi .label{color:var(--muted); font-size:12px}
-    .kpi .val{font-size:18px; margin-top:6px}
-    .val.good{color:var(--good)} .val.bad{color:var(--bad)} .val.warn{color:var(--warn)}
-    .list{
-      margin-top:12px; display:flex; flex-direction:column; gap:10px;
-    }
-    .item{
-      border:1px solid var(--line); border-radius:14px; padding:12px;
-      background:rgba(0,0,0,.10);
-    }
-    .itemTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
-    .itemTitle{font-size:14px}
-    .itemMeta{font-size:12px; color:var(--muted); margin-top:4px}
-    .itemNums{display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; color:var(--muted); font-size:12px}
-    .mono{font-variant-numeric: tabular-nums}
-    .hide{display:none !important}
-    .hr{height:1px; background:var(--line); margin:12px 0}
-    .small{font-size:12px; color:var(--muted)}
-    .dangerBox{
-      border:1px solid rgba(255,95,115,.5); background:rgba(255,95,115,.08);
-      border-radius:14px; padding:10px 12px; color:#ffd7dd;
-    }
-    .successBox{
-      border:1px solid rgba(65,211,140,.5); background:rgba(65,211,140,.08);
-      border-radius:14px; padding:10px 12px; color:#d7ffef;
-    }
-    .toast{
-      position:fixed; left:50%; transform:translateX(-50%);
-      bottom:16px; z-index:50;
-      background:rgba(0,0,0,.72); border:1px solid var(--line);
-      padding:10px 12px; border-radius:999px; color:var(--text);
-      font-size:13px; max-width:92vw; backdrop-filter: blur(10px);
-      pointer-events:none; /* prevents it blocking taps */
+    body { font-family: Arial, sans-serif; margin: 16px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin: 12px 0; }
+    label { display:block; font-size: 12px; margin-top: 8px; }
+    input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 8px; }
+    button { padding: 10px 12px; border-radius: 10px; border: 1px solid #888; background: #fff; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align:left; padding: 8px; border-bottom: 1px solid #eee; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .muted { color:#666; font-size: 12px; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    @media print {
+      .no-print { display:none !important; }
+      body { margin: 0; }
+      .card { border: none; }
     }
   </style>
 </head>
 <body>
-<header>
-  <div class="topRow">
-    <div class="title">
-      <h1>Trucking + Personal Budget Tracker</h1>
-      <div class="sub">Offline. Stores on your phone. Built because spreadsheets hate joy.</div>
+  <header class="no-print">
+    <div>
+      <h2 style="margin:0;">Trucking Made Simple</h2>
+      <div class="muted">Starter billing + invoices (saved on this device)</div>
     </div>
-    <div class="pill" id="statusPill">✅ Ready</div>
+    <div class="actions">
+      <button id="printInvoiceBtn" disabled>Print Invoice</button>
+      <button id="exportBtn">Export Data</button>
+      <input id="importFile" type="file" accept="application/json" style="display:none;" />
+      <button id="importBtn">Import Data</button>
+      <button id="clearBtn">Clear (This Device)</button>
+    </div>
+  </header>
+
+  <div class="card no-print">
+    <h3 style="margin-top:0;">Add Load</h3>
+    <div class="row">
+      <div>
+        <label>Customer</label>
+        <input id="customer" placeholder="ABC Logistics" />
+      </div>
+      <div>
+        <label>Load / Trip #</label>
+        <input id="loadNo" placeholder="L-1001" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Pickup (City, ST)</label>
+        <input id="pickup" placeholder="Dallas, TX" />
+      </div>
+      <div>
+        <label>Delivery (City, ST)</label>
+        <input id="delivery" placeholder="Atlanta, GA" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Pickup Date</label>
+        <input id="pickupDate" type="date" />
+      </div>
+      <div>
+        <label>Delivery Date</label>
+        <input id="deliveryDate" type="date" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Rate ($)</label>
+        <input id="rate" type="number" step="0.01" placeholder="2500.00" />
+      </div>
+      <div>
+        <label>Invoice #</label>
+        <input id="invoiceNo" placeholder="INV-1001" />
+      </div>
+    </div>
+
+    <label>Notes</label>
+    <textarea id="notes" rows="3" placeholder="Any notes for this load..."></textarea>
+
+    <div style="margin-top:10px;" class="actions">
+      <button id="addBtn">Save Load</button>
+    </div>
+    <div class="muted" style="margin-top:6px;">
+      Tip: This saves to your phone/tablet (localStorage). Export regularly to keep a backup.
+    </div>
   </div>
-  <div class="tabs">
-    <div class="tab active" data-tab="trips">🚛 Trips</div>
-    <div class="tab" data-tab="budget">🏠 Budget</div>
-    <div class="tab" data-tab="dashboard">📊 Dashboard</div>
-    <div class="tab" data-tab="settings">⚙️ Settings</div>
+
+  <div class="card no-print">
+    <h3 style="margin-top:0;">Loads</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Invoice</th>
+          <th>Customer</th>
+          <th>Route</th>
+          <th>Rate</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="loadsTbody"></tbody>
+    </table>
   </div>
-</header>
 
-<main>
-  <!-- TRIPS -->
-  <section id="tab-trips" class="grid">
-    <div class="card">
-      <h2>New Trip / Load</h2>
-      <div class="row two">
-        <label>Date
-          <input id="t_date" type="date" />
-        </label>
-        <label>Company (dropdown)
-          <select id="t_company"></select>
-        </label>
-      </div>
-
-      <div class="row three">
-        <label>Truck #
-          <select id="t_truck"></select>
-        </label>
-        <label>Trailer #
-          <select id="t_trailer"></select>
-        </label>
-        <label>Tire Size
-          <select id="t_tire"></select>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Shipper
-          <select id="t_shipper"></select>
-        </label>
-        <label>Load / Reference #
-          <input id="t_ref" placeholder="Optional: load ID" />
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Pickup City/State
-          <select id="t_pickup"></select>
-        </label>
-        <label>Delivery City/State
-          <select id="t_delivery"></select>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Pickup Address
-          <input id="t_pickup_addr" placeholder="Street, city, state" />
-        </label>
-        <label>Delivery Address
-          <input id="t_delivery_addr" placeholder="Street, city, state" />
-        </label>
-      </div>
-
-      <!-- CHANGED: textareas -> dropdowns -->
-      <div class="row two">
-        <label>Broker / Customer
-          <select id="t_customer"></select>
-        </label>
-        <label>Consignee
-          <select id="t_consignee"></select>
-        </label>
-      </div>
-
-      <div class="row three">
-        <label>Loaded Miles
-          <input id="t_loaded_miles" type="number" min="0" step="1" placeholder="0" />
-        </label>
-        <label>Deadhead Miles (last drop → next pickup)
-          <input id="t_deadhead_miles" type="number" min="0" step="1" placeholder="0" />
-        </label>
-        <label>Rate / Trip Revenue ($)
-          <input id="t_revenue" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-
-      <div class="hr"></div>
-
-      <h2>Fuel + Trip Costs</h2>
-      <div class="row three">
-        <label>Fuel Gallons Purchased
-          <input id="t_fuel_gal" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-        <label>Avg Fuel Cost per Gallon ($)
-          <input id="t_fuel_cpg" type="number" min="0" step="0.001" placeholder="0.000" />
-        </label>
-        <label>Tolls ($)
-          <input id="t_tolls" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Other Trip Expenses ($)
-          <input id="t_other" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-        <label>Notes
-          <input id="t_notes" placeholder="Anything you want to remember" />
-        </label>
-      </div>
-
-      <div class="hr"></div>
-
-      <h2>Reserves (auto or manual)</h2>
-      <div class="small">Set default per-mile reserves in ⚙️ Settings. You can override here per trip.</div>
-      <div class="row three">
-        <label>Tire Reserve ($)
-          <input id="t_res_tires" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-        <label>Maintenance Reserve ($)
-          <input id="t_res_maint" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-        <label>Plates Reserve ($)
-          <input id="t_res_plates" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>IFTA Reserve ($) (estimate)
-          <input id="t_res_ifta" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-        <label>Tax Reserve ($) (estimate)
-          <input id="t_res_tax" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="primary" id="btn_calc">🧮 Calculate</button>
-        <button type="button" class="good" id="btn_save">💾 Save Trip</button>
-        <button type="button" class="bad" id="btn_clear">🧽 Clear</button>
-      </div>
-
-      <div class="kpis">
-        <div class="kpi"><div class="label">Total Miles</div><div class="val mono" id="k_total_miles">0</div></div>
-        <div class="kpi"><div class="label">Fuel Cost</div><div class="val mono" id="k_fuel_cost">$0.00</div></div>
-        <div class="kpi"><div class="label">MPG (est)</div><div class="val mono" id="k_mpg">0.00</div></div>
-        <div class="kpi"><div class="label">Trip Net</div><div class="val mono" id="k_net">$0.00</div></div>
-      </div>
-
-      <div class="hr"></div>
-      <div class="small">
-        ⚠️ IFTA here is an <i>estimate</i> unless you track miles + gallons by state.
-        This app includes a reserve estimate so you’re not surprised later.
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Search Past Trips</h2>
-      <label>Search (company, shipper, pickup, delivery, ref, notes)
-        <input id="searchTrips" placeholder="type to filter..." />
-      </label>
-      <div class="btnRow">
-        <button type="button" id="btn_export">⬇️ Export Data</button>
-        <button type="button" id="btn_import">⬆️ Import Data</button>
-        <input id="importFile" type="file" accept="application/json" class="hide" />
-      </div>
-
-      <div class="hr"></div>
-      <div class="list" id="tripList"></div>
-    </div>
-  </section>
-
-  <!-- BUDGET -->
-  <section id="tab-budget" class="grid hide">
-    <div class="card">
-      <h2>Monthly Personal Budget</h2>
-      <div class="row two">
-        <label>Month
-          <input id="b_month" type="month" />
-        </label>
-        <label>Comfort Buffer (%)
-          <input id="b_buffer" type="number" min="0" step="1" placeholder="15" />
-        </label>
-      </div>
-
-      <div class="row three">
-        <label>Paychecks per Month
-          <select id="b_paychecks">
-            <option value="2">2 (biweekly-ish)</option>
-            <option value="4">4 (weekly)</option>
-            <option value="1">1 (monthly)</option>
-          </select>
-        </label>
-        <label>Estimated Tax/Withholding (%)
-          <input id="b_withhold" type="number" min="0" step="1" placeholder="20" />
-        </label>
-        <label>Other Monthly Income ($)
-          <input id="b_other_income" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-
-      <div class="hr"></div>
-
-      <h2>Add Expense</h2>
-      <div class="row two">
-        <label>Category
-          <select id="b_cat"></select>
-        </label>
-        <label>Amount ($)
-          <input id="b_amt" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-      <div class="row">
-        <label>Note (optional)
-          <input id="b_note" placeholder="ex: Netflix, rent, car insurance..." />
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_add_exp">➕ Add</button>
-        <button type="button" class="primary" id="btn_budget_calc">🧮 Calculate Paycheck Needed</button>
-        <button type="button" class="bad" id="btn_budget_clear">🧽 Clear Month</button>
-      </div>
-
-      <div class="kpis">
-        <div class="kpi"><div class="label">Total Monthly Expenses</div><div class="val mono" id="k_b_total">$0.00</div></div>
-        <div class="kpi"><div class="label">Needed (Gross)</div><div class="val mono" id="k_b_gross">$0.00</div></div>
-        <div class="kpi"><div class="label">Needed Per Paycheck (Gross)</div><div class="val mono" id="k_b_percheck">$0.00</div></div>
-        <div class="kpi"><div class="label">Needed (Net after Withholding)</div><div class="val mono" id="k_b_net">$0.00</div></div>
-      </div>
-
-      <div class="hr"></div>
-      <div class="list" id="budgetList"></div>
-    </div>
-
-    <div class="card">
-      <h2>Monthly Goals</h2>
-      <div class="row two">
-        <label>Business Monthly Revenue Goal ($)
-          <input id="g_biz" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-        <label>Personal Monthly Income Goal ($)
-          <input id="g_personal" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_save_goals">💾 Save Goals</button>
-      </div>
-      <div id="goalMsg" class="small"></div>
-
-      <div class="hr"></div>
-      <div class="small">
-        Goals are compared against your saved trips (revenue) and your budget calculator (needed income).
-      </div>
-    </div>
-  </section>
-
-  <!-- DASHBOARD -->
-  <section id="tab-dashboard" class="grid hide">
-    <div class="card">
-      <h2>Business Dashboard</h2>
-      <div class="row two">
-        <label>Year
-          <select id="d_year"></select>
-        </label>
-        <label>Filter Month (optional)
-          <input id="d_month" type="month" />
-        </label>
-      </div>
-      <div class="btnRow">
-        <button type="button" class="primary" id="btn_dash">📊 Refresh</button>
-      </div>
-
-      <div class="kpis">
-        <div class="kpi"><div class="label">Revenue</div><div class="val mono" id="d_rev">$0.00</div></div>
-        <div class="kpi"><div class="label">Expenses</div><div class="val mono" id="d_exp">$0.00</div></div>
-        <div class="kpi"><div class="label">Net</div><div class="val mono" id="d_net">$0.00</div></div>
-        <div class="kpi"><div class="label">Miles</div><div class="val mono" id="d_miles">0</div></div>
-      </div>
-
-      <div class="hr"></div>
-      <div id="dashGoalBox" class="dangerBox hide"></div>
-      <div id="dashGoalOk" class="successBox hide"></div>
-
-      <div class="hr"></div>
-      <div class="small">
-        YTD is based on trips saved on this phone. Export/import if you switch devices.
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Quick Insights</h2>
-      <div class="list" id="insights"></div>
-    </div>
-  </section>
-
-  <!-- SETTINGS -->
-  <section id="tab-settings" class="grid hide">
-    <div class="card">
-      <h2>Dropdown Lists</h2>
-      <div class="small">Edit lists, then hit Save. (Yes, you can add more. No, I can’t stop you.)</div>
-
-      <div class="row two">
-        <label>Companies (one per line)
-          <textarea id="s_companies"></textarea>
-        </label>
-        <label>Shippers (one per line)
-          <textarea id="s_shippers"></textarea>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Pickup/Delivery Locations (City, ST) one per line
-          <textarea id="s_locations"></textarea>
-        </label>
-        <label>Tire Sizes (one per line)
-          <textarea id="s_tires"></textarea>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Truck Numbers (one per line)
-          <textarea id="s_trucks"></textarea>
-        </label>
-        <label>Trailer Numbers (one per line)
-          <textarea id="s_trailers"></textarea>
-        </label>
-      </div>
-
-      <!-- ADDED: settings inputs for the new dropdowns -->
-      <div class="row two">
-        <label>Customers / Brokers (one per line)
-          <textarea id="s_customers"></textarea>
-        </label>
-        <label>Consignees (one per line)
-          <textarea id="s_consignees"></textarea>
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_save_lists">💾 Save Lists</button>
-        <button type="button" class="bad" id="btn_reset_lists">↩️ Reset Defaults</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Default Reserves & Rates</h2>
-      <div class="small">These feed auto-calcs for every trip. You can override per trip.</div>
-
-      <div class="row three">
-        <label>Tire Reserve ($ per mile)
-          <input id="r_tires" type="number" min="0" step="0.001" />
-        </label>
-        <label>Maintenance Reserve ($ per mile)
-          <input id="r_maint" type="number" min="0" step="0.001" />
-        </label>
-        <label>Plates Reserve ($ per mile)
-          <input id="r_plates" type="number" min="0" step="0.001" />
-        </label>
-      </div>
-      <div class="row three">
-        <label>IFTA Reserve ($ per mile) (estimate)
-          <input id="r_ifta" type="number" min="0" step="0.001" />
-        </label>
-        <label>Tax Reserve (% of revenue)
-          <input id="r_tax_pct" type="number" min="0" step="0.1" />
-        </label>
-        <label>Target MPG (for estimates if gallons missing)
-          <input id="r_mpg" type="number" min="1" step="0.1" />
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_save_rates">💾 Save Rates</button>
-      </div>
-
-      <div class="hr"></div>
-      <div class="dangerBox">
-        <b>IFTA note:</b> Real IFTA requires miles + gallons by jurisdiction. This app uses a reserve estimate so you don’t get wrecked later.
-        If you want full jurisdiction reporting, that’s a “bigger-than-one-file” app.
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Budget Categories</h2>
-      <div class="small">One per line. (Yes, you can add “Impulse Purchases.”)</div>
-      <textarea id="s_budget_cats"></textarea>
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_save_budget_cats">💾 Save Categories</button>
-      </div>
-
-      <div class="hr"></div>
-      <button type="button" class="bad" id="btn_nuke">🧨 Delete ALL Data (Danger)</button>
-      <div class="small">This wipes trips, budget, goals. There is no undo. Humans requested “idiot proof” and then asked for a nuke button. So here we are.</div>
-    </div>
-  </section>
-</main>
-
-<div id="toast" class="toast hide">Saved.</div>
+  <div class="card" id="invoiceCard" style="display:none;">
+    <h2 style="margin-top:0;">Invoice</h2>
+    <div class="muted" id="invMeta"></div>
+    <hr />
+    <div id="invBody"></div>
+    <hr />
+    <h3 style="margin:0;">Total Due: <span id="invTotal"></span></h3>
+    <div class="muted">Print this page for a simple invoice PDF.</div>
+  </div>
 
 <script>
-/* =========================
-   Compatibility fixes (Safari-safe)
-========================= */
-if (typeof structuredClone !== "function") {
-  window.structuredClone = (obj) => JSON.parse(JSON.stringify(obj));
-}
-if (!window.crypto) window.crypto = {};
-if (typeof window.crypto.randomUUID !== "function") {
-  window.crypto.randomUUID = () => {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === "x" ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
+  const KEY = "tms_loads_v1";
+
+  function loadData() {
+    try { return JSON.parse(localStorage.getItem(KEY) || "[]"); }
+    catch { return []; }
+  }
+  function saveData(items) {
+    localStorage.setItem(KEY, JSON.stringify(items));
+  }
+  function money(n) {
+    const x = Number(n || 0);
+    return x.toLocaleString(undefined, { style: "currency", currency: "USD" });
+  }
+
+  let loads = loadData();
+  let selectedId = null;
+
+  function renderLoads() {
+    const tbody = document.getElementById("loadsTbody");
+    tbody.innerHTML = "";
+    if (!loads.length) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="5" class="muted">No loads yet. Add one above.</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+    loads.forEach(l => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(l.invoiceNo || "")}</td>
+        <td>${escapeHtml(l.customer || "")}</td>
+        <td>${escapeHtml(l.pickup || "")} → ${escapeHtml(l.delivery || "")}</td>
+        <td>${money(l.rate)}</td>
+        <td class="actions">
+          <button data-action="view" data-id="${l.id}">View Invoice</button>
+          <button data-action="delete" data-id="${l.id}">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
     });
-  };
-}
+  }
 
-/* =========================
-   Storage + Defaults
-========================= */
-const LS_KEY = "truckBudgetTracker.v1";
-const money = (n)=> (isFinite(n) ? n : 0);
-const fmtMoney = (n)=> "$" + money(n).toFixed(2);
-const fmtNum = (n)=> (isFinite(n) ? n : 0).toLocaleString();
+  function escapeHtml(s) {
+    return String(s || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
 
-const defaults = {
-  lists: {
-    companies: ["Select…","ACME Logistics","Blue River Transport"],
-    shippers: ["Select…","Amazon","Walmart DC","Target DC"],
-    locations: ["Select…","Atlanta, GA","Dallas, TX","Chicago, IL","Newark, NJ"],
-    tires: ["Select…","22.5","24.5","11R22.5"],
-    trucks: ["Select…","101","102","103"],
-    trailers: ["Select…","T-201","T-202","T-203"],
-    budgetCats: [
-      "Household expenses","Groceries","Entertainment","Mortgage/Rent",
-      "Car note","Utilities","Phone/Internet","Insurance","Gas/Transportation",
-      "Personal","Savings","Medical"
-    ],
-    customers: ["Select…","CH Robinson","TQL","JB Hunt"],
-    consignees: ["Select…","Walmart DC","Amazon FC","Costco DC"]
-  },
-  rates: {
-    tiresPerMile: 0.05,
-    maintPerMile: 0.12,
-    platesPerMile: 0.02,
-    iftaPerMile: 0.03,
-    taxPctRevenue: 22,
-    targetMPG: 6.5
-  },
-  goals: { bizMonthly: 0, personalMonthly: 0 },
-  trips: [],
-  budget: {} // keyed by YYYY-MM
-};
+  function showInvoice(id) {
+    const l = loads.find(x => x.id === id);
+    if (!l) return;
+    selectedId = id;
 
-function loadState(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return structuredClone(defaults);
-    const parsed = JSON.parse(raw);
-    return {
-      ...structuredClone(defaults),
-      ...parsed,
-      lists: { ...structuredClone(defaults.lists), ...(parsed.lists||{}) },
-      rates: { ...structuredClone(defaults.rates), ...(parsed.rates||{}) },
-      goals: { ...structuredClone(defaults.goals), ...(parsed.goals||{}) },
-      trips: Array.isArray(parsed.trips) ? parsed.trips : [],
-      budget: parsed.budget || {}
+    document.getElementById("invoiceCard").style.display = "block";
+    document.getElementById("printInvoiceBtn").disabled = false;
+
+    document.getElementById("invMeta").textContent =
+      `Invoice #${l.invoiceNo || ""} • Load ${l.loadNo || ""}`;
+
+    document.getElementById("invBody").innerHTML = `
+      <p><b>Billed To:</b> ${escapeHtml(l.customer || "")}</p>
+      <p><b>Route:</b> ${escapeHtml(l.pickup || "")} → ${escapeHtml(l.delivery || "")}</p>
+      <p><b>Pickup Date:</b> ${escapeHtml(l.pickupDate || "")}<br/>
+         <b>Delivery Date:</b> ${escapeHtml(l.deliveryDate || "")}</p>
+      <p><b>Notes:</b><br/>${escapeHtml(l.notes || "").replaceAll("\n","<br/>")}</p>
+    `;
+    document.getElementById("invTotal").textContent = money(l.rate);
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  }
+
+  document.getElementById("addBtn").addEventListener("click", () => {
+    const l = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+      customer: document.getElementById("customer").value.trim(),
+      loadNo: document.getElementById("loadNo").value.trim(),
+      pickup: document.getElementById("pickup").value.trim(),
+      delivery: document.getElementById("delivery").value.trim(),
+      pickupDate: document.getElementById("pickupDate").value,
+      deliveryDate: document.getElementById("deliveryDate").value,
+      rate: document.getElementById("rate").value,
+      invoiceNo: document.getElementById("invoiceNo").value.trim(),
+      notes: document.getElementById("notes").value.trim(),
+      createdAt: new Date().toISOString()
     };
-  } catch(e){
-    return structuredClone(defaults);
-  }
-}
-function saveState(){
-  localStorage.setItem(LS_KEY, JSON.stringify(state));
-}
-let state = loadState();
+    loads.unshift(l);
+    saveData(loads);
+    renderLoads();
 
-/* =========================
-   UI Helpers
-========================= */
-const $ = (id)=> document.getElementById(id);
-function toast(msg){
-  const t = $("toast");
-  if(!t) return;
-  t.textContent = msg;
-  t.classList.remove("hide");
-  setTimeout(()=> t.classList.add("hide"), 1700);
-}
-function fillSelect(selectEl, arr){
-  if(!selectEl) return;
-  selectEl.innerHTML = "";
-  (arr || []).forEach(v=>{
-    const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v;
-    selectEl.appendChild(opt);
-  });
-}
-function todayISO(){
-  const d = new Date();
-  const off = d.getTimezoneOffset();
-  const local = new Date(d.getTime() - off*60000);
-  return local.toISOString().slice(0,10);
-}
+    ["customer","loadNo","pickup","delivery","pickupDate","deliveryDate","rate","invoiceNo","notes"]
+      .forEach(id => document.getElementById(id).value = "");
 
-/* =========================
-   Tabs
-========================= */
-document.querySelectorAll(".tab").forEach(tab=>{
-  tab.addEventListener("click", ()=>{
-    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-    tab.classList.add("active");
-    const name = tab.dataset.tab;
-    ["trips","budget","dashboard","settings"].forEach(n=>{
-      $("tab-"+n).classList.toggle("hide", n!==name);
-    });
-    if(name==="dashboard") refreshDashboard();
-    if(name==="settings") loadSettingsUI();
-    if(name==="budget") loadBudgetUI();
-    if(name==="trips") renderTrips();
-  });
-});
-
-/* =========================
-   Trips: Populate dropdowns
-========================= */
-function loadTripDropdowns(){
-  fillSelect($("t_company"), state.lists.companies);
-  fillSelect($("t_shipper"), state.lists.shippers);
-  fillSelect($("t_pickup"), state.lists.locations);
-  fillSelect($("t_delivery"), state.lists.locations);
-  fillSelect($("t_tire"), state.lists.tires);
-  fillSelect($("t_truck"), state.lists.trucks);
-  fillSelect($("t_trailer"), state.lists.trailers);
-
-  // NEW:
-  fillSelect($("t_customer"), state.lists.customers);
-  fillSelect($("t_consignee"), state.lists.consignees);
-}
-loadTripDropdowns();
-
-/* =========================
-   Trip Calculations
-========================= */
-function readTripForm(){
-  const loaded = money(parseFloat($("t_loaded_miles").value));
-  const deadhead = money(parseFloat($("t_deadhead_miles").value));
-  const miles = loaded + deadhead;
-
-  const revenue = money(parseFloat($("t_revenue").value));
-  const gal = money(parseFloat($("t_fuel_gal").value));
-  const cpg = money(parseFloat($("t_fuel_cpg").value));
-  const fuelCost = gal * cpg;
-
-  const tolls = money(parseFloat($("t_tolls").value));
-  const other = money(parseFloat($("t_other").value));
-
-  const autoTires = miles * state.rates.tiresPerMile;
-  const autoMaint = miles * state.rates.maintPerMile;
-  const autoPlates = miles * state.rates.platesPerMile;
-  const autoIFTA  = miles * state.rates.iftaPerMile;
-  const autoTax   = revenue * (state.rates.taxPctRevenue/100);
-
-  const resTires = $("t_res_tires").value.trim()==="" ? autoTires : money(parseFloat($("t_res_tires").value));
-  const resMaint = $("t_res_maint").value.trim()==="" ? autoMaint : money(parseFloat($("t_res_maint").value));
-  const resPlates= $("t_res_plates").value.trim()==="" ? autoPlates: money(parseFloat($("t_res_plates").value));
-  const resIFTA  = $("t_res_ifta").value.trim()==="" ? autoIFTA  : money(parseFloat($("t_res_ifta").value));
-  const resTax   = $("t_res_tax").value.trim()===""  ? autoTax   : money(parseFloat($("t_res_tax").value));
-
-  let mpg = 0;
-  if(gal>0 && miles>0) mpg = miles / gal;
-  else if(miles>0) mpg = state.rates.targetMPG;
-
-  const totalExpenses = fuelCost + tolls + other + resTires + resMaint + resPlates + resIFTA + resTax;
-  const net = revenue - totalExpenses;
-  const cpm = miles>0 ? (totalExpenses/miles) : 0;
-
-  return {
-    date: $("t_date").value || todayISO(),
-    company: $("t_company").value,
-    truck: $("t_truck").value,
-    trailer: $("t_trailer").value,
-    tireSize: $("t_tire").value,
-    shipper: $("t_shipper").value,
-    ref: $("t_ref").value.trim(),
-    pickup: $("t_pickup").value,
-    pickupAddr: $("t_pickup_addr").value.trim(),
-    delivery: $("t_delivery").value,
-    deliveryAddr: $("t_delivery_addr").value.trim(),
-
-    // NEW:
-    customer: $("t_customer").value,
-    consignee: $("t_consignee").value,
-
-    loadedMiles: loaded,
-    deadheadMiles: deadhead,
-    totalMiles: miles,
-    revenue,
-    fuelGallons: gal,
-    fuelCostPerGallon: cpg,
-    fuelCost,
-    tolls,
-    other,
-    reserves: { tires:resTires, maint:resMaint, plates:resPlates, ifta:resIFTA, tax:resTax },
-    totals: { totalExpenses, net, mpg, cpm },
-    notes: $("t_notes").value.trim(),
-    id: crypto.randomUUID()
-  };
-}
-
-function updateTripKPIs(t){
-  $("k_total_miles").textContent = fmtNum(t.totalMiles);
-  $("k_fuel_cost").textContent = fmtMoney(t.fuelCost);
-  $("k_mpg").textContent = (t.totals.mpg||0).toFixed(2);
-  const netEl = $("k_net");
-  netEl.textContent = fmtMoney(t.totals.net);
-  netEl.classList.remove("good","bad","warn");
-  netEl.classList.add(t.totals.net>=0 ? "good" : "bad");
-}
-
-$("btn_calc").addEventListener("click", ()=>{
-  const t = readTripForm();
-  updateTripKPIs(t);
-  toast("Calculated ✅");
-});
-
-$("btn_clear").addEventListener("click", ()=>{
-  [
-    "t_ref","t_pickup_addr","t_delivery_addr","t_loaded_miles","t_deadhead_miles","t_revenue",
-    "t_fuel_gal","t_fuel_cpg","t_tolls","t_other","t_res_tires","t_res_maint","t_res_plates","t_res_ifta","t_res_tax","t_notes"
-  ].forEach(id=> $(id).value="");
-
-  // reset selects to first option
-  ["t_company","t_truck","t_trailer","t_tire","t_shipper","t_pickup","t_delivery","t_customer","t_consignee"]
-    .forEach(id=>{
-      const el = $(id);
-      if(el && el.tagName === "SELECT") el.selectedIndex = 0;
-    });
-
-  $("t_date").value = todayISO();
-  updateTripKPIs({totalMiles:0,fuelCost:0,totals:{mpg:0,net:0}});
-  toast("Cleared 🧽");
-});
-
-$("btn_save").addEventListener("click", ()=>{
-  const t = readTripForm();
-  if(!t.company || t.company==="Select…") return toast("Pick a company.");
-  if(!t.pickup || t.pickup==="Select…") return toast("Pick a pickup.");
-  if(!t.delivery || t.delivery==="Select…") return toast("Pick a delivery.");
-  if(t.totalMiles<=0) return toast("Miles must be > 0.");
-  if(t.revenue<=0) return toast("Revenue must be > 0.");
-
-  state.trips.unshift(t);
-  saveState();
-  updateTripKPIs(t);
-  renderTrips();
-  toast("Saved 💾");
-});
-
-/* =========================
-   Trips: Render + Search
-========================= */
-function renderTrips(){
-  const q = ($("searchTrips").value||"").toLowerCase().trim();
-  const list = $("tripList");
-  list.innerHTML = "";
-
-  const filtered = state.trips.filter(t=>{
-    if(!q) return true;
-    const blob = [
-      t.company,t.shipper,t.pickup,t.delivery,t.ref,t.notes,t.truck,t.trailer,
-      t.customer,t.consignee
-    ].join(" ").toLowerCase();
-    return blob.includes(q);
+    alert("Saved.");
   });
 
-  if(filtered.length===0){
-    const div = document.createElement("div");
-    div.className="small";
-    div.textContent = state.trips.length===0 ? "No trips saved yet." : "No matches.";
-    list.appendChild(div);
-    return;
-  }
-
-  filtered.slice(0,200).forEach(t=>{
-    const item = document.createElement("div");
-    item.className="item";
-
-    const top = document.createElement("div");
-    top.className="itemTop";
-    top.innerHTML = `
-      <div>
-        <div class="itemTitle"><b>${escapeHtml(t.company)}</b> · ${escapeHtml(t.pickup)} → ${escapeHtml(t.delivery)}</div>
-        <div class="itemMeta mono">${escapeHtml(t.date)} · Truck ${escapeHtml(t.truck)} · Trailer ${escapeHtml(t.trailer)} · Ref: ${escapeHtml(t.ref||"-")}</div>
-        <div class="itemMeta">Broker: <b>${escapeHtml(t.customer||"-")}</b> · Consignee: <b>${escapeHtml(t.consignee||"-")}</b></div>
-      </div>
-      <div class="mono" style="font-size:14px; color:${t.totals.net>=0?'var(--good)':'var(--bad)'}">
-        ${fmtMoney(t.totals.net)}
-      </div>
-    `;
-
-    const nums = document.createElement("div");
-    nums.className="itemNums mono";
-    nums.innerHTML = `
-      <span>Miles: <b>${fmtNum(t.totalMiles)}</b> (DH ${fmtNum(t.deadheadMiles)})</span>
-      <span>Rev: <b>${fmtMoney(t.revenue)}</b></span>
-      <span>Exp: <b>${fmtMoney(t.totals.totalExpenses)}</b></span>
-      <span>MPG: <b>${(t.totals.mpg||0).toFixed(2)}</b></span>
-    `;
-
-    const btns = document.createElement("div");
-    btns.className="btnRow";
-    btns.innerHTML = `
-      <button type="button" class="primary">✏️ Load to Form</button>
-      <button type="button" class="bad">🗑️ Delete</button>
-    `;
-    btns.children[0].addEventListener("click", ()=> loadTripToForm(t));
-    btns.children[1].addEventListener("click", ()=> {
-      if(confirm("Delete this trip?")) {
-        state.trips = state.trips.filter(x=>x.id!==t.id);
-        saveState();
-        renderTrips();
-        toast("Deleted 🗑️");
+  document.getElementById("loadsTbody").addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const id = btn.getAttribute("data-id");
+    const action = btn.getAttribute("data-action");
+    if (action === "view") showInvoice(id);
+    if (action === "delete") {
+      if (!confirm("Delete this load?")) return;
+      loads = loads.filter(x => x.id !== id);
+      saveData(loads);
+      if (selectedId === id) {
+        document.getElementById("invoiceCard").style.display = "none";
+        document.getElementById("printInvoiceBtn").disabled = true;
       }
-    });
-
-    item.appendChild(top);
-    item.appendChild(nums);
-    if(t.notes){
-      const note = document.createElement("div");
-      note.className="small";
-      note.style.marginTop="8px";
-      note.textContent = "📝 " + t.notes;
-      item.appendChild(note);
+      renderLoads();
     }
-    item.appendChild(btns);
-    list.appendChild(item);
-  });
-}
-$("searchTrips").addEventListener("input", renderTrips);
-
-function loadTripToForm(t){
-  $("t_date").value = t.date;
-  $("t_company").value = t.company;
-  $("t_truck").value = t.truck;
-  $("t_trailer").value = t.trailer;
-  $("t_tire").value = t.tireSize;
-  $("t_shipper").value = t.shipper;
-  $("t_ref").value = t.ref||"";
-  $("t_pickup").value = t.pickup;
-  $("t_pickup_addr").value = t.pickupAddr||"";
-  $("t_delivery").value = t.delivery;
-  $("t_delivery_addr").value = t.deliveryAddr||"";
-
-  // NEW:
-  $("t_customer").value = t.customer || "Select…";
-  $("t_consignee").value = t.consignee || "Select…";
-
-  $("t_loaded_miles").value = t.loadedMiles;
-  $("t_deadhead_miles").value = t.deadheadMiles;
-  $("t_revenue").value = t.revenue;
-  $("t_fuel_gal").value = t.fuelGallons;
-  $("t_fuel_cpg").value = t.fuelCostPerGallon;
-  $("t_tolls").value = t.tolls;
-  $("t_other").value = t.other;
-  $("t_res_tires").value = t.reserves.tires;
-  $("t_res_maint").value = t.reserves.maint;
-  $("t_res_plates").value = t.reserves.plates;
-  $("t_res_ifta").value = t.reserves.ifta;
-  $("t_res_tax").value = t.reserves.tax;
-  $("t_notes").value = t.notes||"";
-  updateTripKPIs(t);
-  toast("Loaded ✏️");
-}
-
-/* =========================
-   Export / Import
-========================= */
-$("btn_export").addEventListener("click", ()=>{
-  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "truck-budget-tracker-backup.json";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-  toast("Exported ⬇️");
-});
-
-$("btn_import").addEventListener("click", ()=> $("importFile").click());
-$("importFile").addEventListener("change", async (e)=>{
-  const file = e.target.files?.[0];
-  if(!file) return;
-  const text = await file.text();
-  try{
-    const parsed = JSON.parse(text);
-    if(!parsed || typeof parsed !== "object") throw new Error("bad");
-    state = {
-      ...structuredClone(defaults),
-      ...parsed,
-      lists: { ...structuredClone(defaults.lists), ...(parsed.lists||{}) },
-      rates: { ...structuredClone(defaults.rates), ...(parsed.rates||{}) },
-      goals: { ...structuredClone(defaults.goals), ...(parsed.goals||{}) },
-      trips: Array.isArray(parsed.trips) ? parsed.trips : [],
-      budget: parsed.budget || {}
-    };
-    saveState();
-    loadTripDropdowns();
-    renderTrips();
-    loadSettingsUI();
-    loadBudgetUI();
-    toast("Imported ⬆️");
-  } catch(err){
-    toast("Import failed. Wrong file?");
-  } finally {
-    e.target.value = "";
-  }
-});
-
-/* =========================
-   Budget
-========================= */
-function loadBudgetUI(){
-  fillSelect($("b_cat"), state.lists.budgetCats);
-  $("b_month").value = $("b_month").value || new Date().toISOString().slice(0,7);
-  $("b_buffer").value = $("b_buffer").value || 15;
-  $("b_withhold").value = $("b_withhold").value || 20;
-  renderBudgetList();
-  calcBudget();
-  $("g_biz").value = state.goals.bizMonthly || 0;
-  $("g_personal").value = state.goals.personalMonthly || 0;
-}
-function monthKey(){ return $("b_month").value || new Date().toISOString().slice(0,7); }
-
-function getBudgetMonth(){
-  const key = monthKey();
-  if(!state.budget[key]) state.budget[key] = [];
-  return state.budget[key];
-}
-
-function renderBudgetList(){
-  const list = $("budgetList");
-  list.innerHTML="";
-  const items = getBudgetMonth();
-  if(items.length===0){
-    const d = document.createElement("div");
-    d.className="small";
-    d.textContent="No expenses added for this month.";
-    list.appendChild(d);
-    return;
-  }
-  items.forEach((x, idx)=>{
-    const item = document.createElement("div");
-    item.className="item";
-    item.innerHTML = `
-      <div class="itemTop">
-        <div>
-          <div class="itemTitle"><b>${escapeHtml(x.cat)}</b> · <span class="mono">${fmtMoney(x.amt)}</span></div>
-          <div class="itemMeta">${escapeHtml(x.note||"")}</div>
-        </div>
-        <button type="button" class="bad">🗑️</button>
-      </div>
-    `;
-    item.querySelector("button").addEventListener("click", ()=>{
-      getBudgetMonth().splice(idx,1);
-      saveState();
-      renderBudgetList();
-      calcBudget();
-      toast("Deleted 🗑️");
-    });
-    list.appendChild(item);
-  });
-}
-
-$("b_month").addEventListener("change", ()=>{ renderBudgetList(); calcBudget(); });
-
-$("btn_add_exp").addEventListener("click", ()=>{
-  const cat = $("b_cat").value;
-  const amt = money(parseFloat($("b_amt").value));
-  const note = $("b_note").value.trim();
-  if(!cat) return toast("Pick a category.");
-  if(amt<=0) return toast("Amount must be > 0.");
-  getBudgetMonth().push({cat, amt, note, id: crypto.randomUUID()});
-  saveState();
-  $("b_amt").value="";
-  $("b_note").value="";
-  renderBudgetList();
-  calcBudget();
-  toast("Added ➕");
-});
-
-$("btn_budget_calc").addEventListener("click", ()=>{ calcBudget(); toast("Calculated ✅"); });
-
-$("btn_budget_clear").addEventListener("click", ()=>{
-  const key = monthKey();
-  if(confirm("Clear all expenses for "+key+"?")){
-    state.budget[key]=[];
-    saveState();
-    renderBudgetList();
-    calcBudget();
-    toast("Cleared 🧽");
-  }
-});
-
-function calcBudget(){
-  const items = getBudgetMonth();
-  const total = items.reduce((s,x)=> s+money(x.amt), 0);
-
-  const bufferPct = money(parseFloat($("b_buffer").value));
-  const withholdPct = money(parseFloat($("b_withhold").value));
-  const otherIncome = money(parseFloat($("b_other_income").value));
-  const checks = parseInt($("b_paychecks").value,10) || 2;
-
-  const buffered = total * (1 + bufferPct/100);
-  const neededNet = Math.max(0, buffered - otherIncome);
-  const neededGross = (withholdPct>=100) ? neededNet : neededNet / (1 - withholdPct/100);
-  const perCheck = checks>0 ? neededGross / checks : neededGross;
-
-  $("k_b_total").textContent = fmtMoney(total);
-  $("k_b_net").textContent = fmtMoney(neededNet);
-  $("k_b_gross").textContent = fmtMoney(neededGross);
-  $("k_b_percheck").textContent = fmtMoney(perCheck);
-}
-
-["b_buffer","b_withhold","b_other_income","b_paychecks"].forEach(id=>{
-  $(id).addEventListener("input", calcBudget);
-  $(id).addEventListener("change", calcBudget);
-});
-
-$("btn_save_goals").addEventListener("click", ()=>{
-  state.goals.bizMonthly = money(parseFloat($("g_biz").value));
-  state.goals.personalMonthly = money(parseFloat($("g_personal").value));
-  saveState();
-  $("goalMsg").textContent = "Saved ✅";
-  toast("Goals saved 💾");
-});
-
-/* =========================
-   Dashboard
-========================= */
-function loadYearOptions(){
-  const sel = $("d_year");
-  const years = new Set(state.trips.map(t=> (t.date||"").slice(0,4)).filter(Boolean));
-  years.add(String(new Date().getFullYear()));
-  const arr = Array.from(years).sort((a,b)=> b.localeCompare(a));
-  sel.innerHTML="";
-  arr.forEach(y=>{
-    const opt = document.createElement("option");
-    opt.value=y; opt.textContent=y;
-    sel.appendChild(opt);
-  });
-}
-loadYearOptions();
-
-$("btn_dash").addEventListener("click", refreshDashboard);
-
-function refreshDashboard(){
-  loadYearOptions();
-  const year = $("d_year").value || String(new Date().getFullYear());
-  const month = ($("d_month").value||"").trim();
-
-  const trips = state.trips.filter(t=>{
-    const d = t.date || "";
-    if(!d.startsWith(year)) return false;
-    if(month && !d.startsWith(month)) return false;
-    return true;
   });
 
-  const rev = trips.reduce((s,t)=> s+money(t.revenue), 0);
-  const exp = trips.reduce((s,t)=> s+money(t.totals?.totalExpenses), 0);
-  const net = rev - exp;
-  const miles = trips.reduce((s,t)=> s+money(t.totalMiles), 0);
+  document.getElementById("printInvoiceBtn").addEventListener("click", () => {
+    if (!selectedId) return;
+    window.print();
+  });
 
-  $("d_rev").textContent = fmtMoney(rev);
-  $("d_exp").textContent = fmtMoney(exp);
-  $("d_net").textContent = fmtMoney(net);
-  $("d_miles").textContent = fmtNum(miles);
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(loads, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "trucking-made-simple-data.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 
-  const netEl = $("d_net");
-  netEl.classList.remove("good","bad","warn");
-  netEl.classList.add(net>=0 ? "good" : "bad");
+  document.getElementById("importBtn").addEventListener("click", () => {
+    document.getElementById("importFile").click();
+  });
 
-  const goalBox = $("dashGoalBox");
-  const okBox = $("dashGoalOk");
-  goalBox.classList.add("hide");
-  okBox.classList.add("hide");
-
-  const bizGoal = money(state.goals.bizMonthly);
-  if(month && bizGoal>0){
-    const pct = (rev/bizGoal)*100;
-    if(rev < bizGoal){
-      goalBox.textContent = `Business goal: ${fmtMoney(bizGoal)}. Current: ${fmtMoney(rev)} (${pct.toFixed(1)}%).`;
-      goalBox.classList.remove("hide");
-    } else {
-      okBox.textContent = `Business goal hit ✅ ${fmtMoney(rev)} / ${fmtMoney(bizGoal)} (${pct.toFixed(1)}%).`;
-      okBox.classList.remove("hide");
+  document.getElementById("importFile").addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    try {
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed)) throw new Error("Not an array");
+      loads = parsed;
+      saveData(loads);
+      renderLoads();
+      alert("Imported.");
+    } catch {
+      alert("Import failed. Make sure you selected the exported JSON file.");
+    } finally {
+      e.target.value = "";
     }
-  }
-
-  const ins = $("insights");
-  ins.innerHTML = "";
-  const avgMPG = trips.length ? (trips.reduce((s,t)=> s+money(t.totals?.mpg),0)/trips.length) : 0;
-  const avgNet = trips.length ? (trips.reduce((s,t)=> s+money(t.totals?.net),0)/trips.length) : 0;
-  const avgCPM = miles>0 ? (exp/miles) : 0;
-  const best = trips.reduce((a,b)=> (money(b.totals?.net) > money(a.totals?.net) ? b : a), trips[0]||null);
-  const worst= trips.reduce((a,b)=> (money(b.totals?.net) < money(a.totals?.net) ? b : a), trips[0]||null);
-
-  [
-    {t:"Average MPG", v: avgMPG.toFixed(2)},
-    {t:"Average Net per Trip", v: fmtMoney(avgNet)},
-    {t:"Average Cost per Mile", v: fmtMoney(avgCPM)},
-    best ? {t:"Best Trip Net", v: `${fmtMoney(best.totals.net)} · ${best.pickup} → ${best.delivery}`} : null,
-    worst ? {t:"Worst Trip Net", v: `${fmtMoney(worst.totals.net)} · ${worst.pickup} → ${worst.delivery}`} : null,
-  ].filter(Boolean).forEach(x=>{
-    const d = document.createElement("div");
-    d.className="item";
-    d.innerHTML = `<div class="itemTitle"><b>${escapeHtml(x.t)}</b></div><div class="itemMeta mono">${escapeHtml(String(x.v))}</div>`;
-    ins.appendChild(d);
   });
-}
 
-/* =========================
-   Settings
-========================= */
-function loadSettingsUI(){
-  $("s_companies").value = state.lists.companies.join("\n");
-  $("s_shippers").value = state.lists.shippers.join("\n");
-  $("s_locations").value = state.lists.locations.join("\n");
-  $("s_tires").value = state.lists.tires.join("\n");
-  $("s_trucks").value = state.lists.trucks.join("\n");
-  $("s_trailers").value = state.lists.trailers.join("\n");
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    if (!confirm("Clear all loads on this device?")) return;
+    loads = [];
+    saveData(loads);
+    document.getElementById("invoiceCard").style.display = "none";
+    document.getElementById("printInvoiceBtn").disabled = true;
+    renderLoads();
+  });
 
-  // NEW:
-  $("s_customers").value = state.lists.customers.join("\n");
-  $("s_consignees").value = state.lists.consignees.join("\n");
-
-  $("s_budget_cats").value = state.lists.budgetCats.join("\n");
-
-  $("r_tires").value = state.rates.tiresPerMile;
-  $("r_maint").value = state.rates.maintPerMile;
-  $("r_plates").value = state.rates.platesPerMile;
-  $("r_ifta").value = state.rates.iftaPerMile;
-  $("r_tax_pct").value = state.rates.taxPctRevenue;
-  $("r_mpg").value = state.rates.targetMPG;
-}
-
-function linesToList(text){
-  return text.split("\n").map(x=>x.trim()).filter(Boolean);
-}
-
-$("btn_save_lists").addEventListener("click", ()=>{
-  state.lists.companies = ensureSelect(linesToList($("s_companies").value));
-  state.lists.shippers  = ensureSelect(linesToList($("s_shippers").value));
-  state.lists.locations = ensureSelect(linesToList($("s_locations").value));
-  state.lists.tires     = ensureSelect(linesToList($("s_tires").value));
-  state.lists.trucks    = ensureSelect(linesToList($("s_trucks").value));
-  state.lists.trailers  = ensureSelect(linesToList($("s_trailers").value));
-
-  // NEW:
-  state.lists.customers  = ensureSelect(linesToList($("s_customers").value));
-  state.lists.consignees = ensureSelect(linesToList($("s_consignees").value));
-
-  saveState();
-  loadTripDropdowns();
-  toast("Lists saved 💾");
-});
-
-$("btn_reset_lists").addEventListener("click", ()=>{
-  if(confirm("Reset dropdown lists to defaults?")){
-    state.lists = structuredClone(defaults.lists);
-    saveState();
-    loadSettingsUI();
-    loadTripDropdowns();
-    loadBudgetUI();
-    toast("Reset ↩️");
-  }
-});
-
-$("btn_save_rates").addEventListener("click", ()=>{
-  state.rates.tiresPerMile = money(parseFloat($("r_tires").value));
-  state.rates.maintPerMile = money(parseFloat($("r_maint").value));
-  state.rates.platesPerMile= money(parseFloat($("r_plates").value));
-  state.rates.iftaPerMile  = money(parseFloat($("r_ifta").value));
-  state.rates.taxPctRevenue= money(parseFloat($("r_tax_pct").value));
-  state.rates.targetMPG    = money(parseFloat($("r_mpg").value)) || defaults.rates.targetMPG;
-  saveState();
-  toast("Rates saved 💾");
-});
-
-$("btn_save_budget_cats").addEventListener("click", ()=>{
-  state.lists.budgetCats = linesToList($("s_budget_cats").value);
-  saveState();
-  loadBudgetUI();
-  toast("Categories saved 💾");
-});
-
-$("btn_nuke").addEventListener("click", ()=>{
-  if(confirm("This deletes EVERYTHING. Are you sure?")){
-    localStorage.removeItem(LS_KEY);
-    state = structuredClone(defaults);
-    saveState();
-    loadTripDropdowns();
-    loadSettingsUI();
-    loadBudgetUI();
-    renderTrips();
-    refreshDashboard();
-    toast("All data deleted 🧨");
-  }
-});
-
-function ensureSelect(arr){
-  if(arr[0] !== "Select…") arr.unshift("Select…");
-  return arr;
-}
-function escapeHtml(s){
-  return String(s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
-}
-
-/* =========================
-   Init
-========================= */
-$("t_date").value = todayISO();
-renderTrips();
-loadSettingsUI();
-loadBudgetUI();
-refreshDashboard();
+  renderLoads();
 </script>
 </body>
 </html>
