@@ -39,6 +39,46 @@
   </header>
 
   <div class="card no-print">
+<div class="card no-print">
+    <h3 style="margin-top:0;">Company Settings (prints on invoices)</h3>
+
+    <div class="row">
+      <div>
+        <label>Company Name</label>
+        <input id="bizName" placeholder="Trucking Made Simple LLC" />
+      </div>
+      <div>
+        <label>Phone</label>
+        <input id="bizPhone" placeholder="(555) 555-5555" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Email</label>
+        <input id="bizEmail" placeholder="billing@yourcompany.com" />
+      </div>
+      <div>
+        <label>Invoice Terms (example: Net 7)</label>
+        <input id="bizTerms" placeholder="Net 7" />
+      </div>
+    </div>
+
+    <label>Address (prints on invoices)</label>
+    <textarea id="bizAddress" rows="3" placeholder="Street&#10;City, State ZIP"></textarea>
+
+    <label>Payment Instructions (prints on invoices)</label>
+    <textarea id="bizPay" rows="3" placeholder="Make checks payable to...&#10;ACH: Bank / Routing / Account&#10;Or any instructions you want"></textarea>
+
+    <div style="margin-top:10px;" class="actions">
+      <button id="saveBizBtn">Save Company Info</button>
+    </div>
+
+    <div class="muted" style="margin-top:6px;">
+      Saved on this device. Export your data regularly to back up everything.
+    </div>
+  </div>
+    
     <h3 style="margin-top:0;">Add Load</h3>
     <div class="row">
       <div>
@@ -123,7 +163,31 @@
 
 <script>
   const KEY = "tms_loads_v1";
+  const COMPANY_KEY = "tms_company_v1";
 
+  function loadCompany() {
+    try { return JSON.parse(localStorage.getItem(COMPANY_KEY) || "{}"); }
+    catch { return {}; }
+  }
+  function saveCompany(c) {
+    localStorage.setItem(COMPANY_KEY, JSON.stringify(c));
+  }
+
+  let company = loadCompany();
+const COMPANY_KEY = "tms_company_v1";
+
+  function loadCompany() {
+    try {
+      return JSON.parse(localStorage.getItem(COMPANY_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+  function saveCompany(c) {
+    localStorage.setItem(COMPANY_KEY, JSON.stringify(c));
+  }
+
+  let company = loadCompany();
   function loadData() {
     try { return JSON.parse(localStorage.getItem(KEY) || "[]"); }
     catch { return []; }
@@ -183,16 +247,29 @@
 
     document.getElementById("invMeta").textContent =
       `Invoice #${l.invoiceNo || ""} • Load ${l.loadNo || ""}`;
+const companyBlock = `
+      <div style="margin-bottom:10px;">
+        <div><b>${escapeHtml(company.bizName || "Trucking Made Simple")}</b></div>
+        <div>${escapeHtml(company.bizAddress || "").replaceAll("\n","<br/>")}</div>
+        <div>${escapeHtml(company.bizPhone || "")}${company.bizPhone && company.bizEmail ? " • " : ""}${escapeHtml(company.bizEmail || "")}</div>
+        <div>${company.bizTerms ? "<b>Terms:</b> " + escapeHtml(company.bizTerms) : ""}</div>
+      </div>
+    `;
+
+    const paymentBlock = company.bizPay
+      ? `<p><b>Payment Instructions:</b><br/>${escapeHtml(company.bizPay).replaceAll("\n","<br/>")}</p>`
+      : "";
 
     document.getElementById("invBody").innerHTML = `
+      ${companyBlock}
       <p><b>Billed To:</b> ${escapeHtml(l.customer || "")}</p>
       <p><b>Route:</b> ${escapeHtml(l.pickup || "")} → ${escapeHtml(l.delivery || "")}</p>
       <p><b>Pickup Date:</b> ${escapeHtml(l.pickupDate || "")}<br/>
          <b>Delivery Date:</b> ${escapeHtml(l.deliveryDate || "")}</p>
       <p><b>Notes:</b><br/>${escapeHtml(l.notes || "").replaceAll("\n","<br/>")}</p>
+      ${paymentBlock}
     `;
-    document.getElementById("invTotal").textContent = money(l.rate);
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    
   }
 
   document.getElementById("addBtn").addEventListener("click", () => {
@@ -211,6 +288,30 @@
     };
     loads.unshift(l);
     saveData(loads);
+    // --- Company Settings ---
+  function fillCompanyForm() {
+    document.getElementById("bizName").value = company.bizName || "";
+    document.getElementById("bizPhone").value = company.bizPhone || "";
+    document.getElementById("bizEmail").value = company.bizEmail || "";
+    document.getElementById("bizTerms").value = company.bizTerms || "";
+    document.getElementById("bizAddress").value = company.bizAddress || "";
+    document.getElementById("bizPay").value = company.bizPay || "";
+  }
+
+  document.getElementById("saveBizBtn").addEventListener("click", () => {
+    company = {
+      bizName: document.getElementById("bizName").value.trim(),
+      bizPhone: document.getElementById("bizPhone").value.trim(),
+      bizEmail: document.getElementById("bizEmail").value.trim(),
+      bizTerms: document.getElementById("bizTerms").value.trim(),
+      bizAddress: document.getElementById("bizAddress").value.trim(),
+      bizPay: document.getElementById("bizPay").value.trim()
+    };
+    saveCompany(company);
+    alert("Company info saved on this device.");
+  });
+
+  fillCompanyForm();
     renderLoads();
 
     ["customer","loadNo","pickup","delivery","pickupDate","deliveryDate","rate","invoiceNo","notes"]
@@ -265,6 +366,30 @@
       if (!Array.isArray(parsed)) throw new Error("Not an array");
       loads = parsed;
       saveData(loads);
+      // --- Company Settings ---
+  function fillCompanyForm() {
+    document.getElementById("bizName").value = company.bizName || "";
+    document.getElementById("bizPhone").value = company.bizPhone || "";
+    document.getElementById("bizEmail").value = company.bizEmail || "";
+    document.getElementById("bizTerms").value = company.bizTerms || "";
+    document.getElementById("bizAddress").value = company.bizAddress || "";
+    document.getElementById("bizPay").value = company.bizPay || "";
+  }
+
+  document.getElementById("saveBizBtn").addEventListener("click", () => {
+    company = {
+      bizName: document.getElementById("bizName").value.trim(),
+      bizPhone: document.getElementById("bizPhone").value.trim(),
+      bizEmail: document.getElementById("bizEmail").value.trim(),
+      bizTerms: document.getElementById("bizTerms").value.trim(),
+      bizAddress: document.getElementById("bizAddress").value.trim(),
+      bizPay: document.getElementById("bizPay").value.trim()
+    };
+    saveCompany(company);
+    alert("Company info saved on this device.");
+  });
+
+  fillCompanyForm();
       renderLoads();
       alert("Imported.");
     } catch {
