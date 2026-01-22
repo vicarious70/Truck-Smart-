@@ -339,7 +339,10 @@ consigneeAddress: document.getElementById("consigneeAddress")?.value.trim() || "
       .forEach(id => document.getElementById(id).value = "");
 
     alert("Saved.");
-  });
+  });document.getElementById("shipperName").value = "";
+document.getElementById("shipperAddress").value = "";
+document.getElementById("consigneeName").value = "";
+document.getElementById("consigneeAddress").value = "";
 
   els.loadsTbody.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
