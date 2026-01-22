@@ -556,38 +556,82 @@ saveCustomerBtn.addEventListener("click", () => {
 
   // Export / Import / Clear
   els.exportBtn.addEventListener("click", () => {
-    const payload = { version: 1, exportedAt: new Date().toISOString(), loads };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "trucking-made-simple-data.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  });
+  const payload = {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    loads,
+    company,
+    customers,
+    shippers,
+    consignees
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "trucking-made-simple-backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+  
 
   els.importBtn.addEventListener("click", () => {
     els.importFile.click();
   });
+els.importFile.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-  els.importFile.addEventListener("change", async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    try {
-      const parsed = JSON.parse(text);
-      const incoming = Array.isArray(parsed) ? parsed : (parsed.loads || []);
-      if (!Array.isArray(incoming)) throw new Error("Bad format");
-      loads = incoming;
-      saveData(loads);
-      renderLoads();
-      alert("Imported.");
-    } catch {
-      alert("Import failed. Make sure you selected the exported JSON file.");
-    } finally {
-      e.target.value = "";
+  const text = await file.text();
+
+  try {
+    const parsed = JSON.parse(text);
+
+    // Backward compatible:
+    // - Old exports might be an array of loads, or {loads:[...]}
+    const incomingLoads = Array.isArray(parsed) ? parsed : (parsed.loads || []);
+    if (!Array.isArray(incomingLoads)) throw new Error("Bad loads format");
+
+    loads = incomingLoads;
+    saveData(loads);
+
+    // Restore optional sections if present
+    if (parsed.company && typeof parsed.company === "object") {
+      company = parsed.company;
+      saveCompany(company);
+      fillCompanyForm();
     }
-  });
+
+    if (parsed.customers && typeof parsed.customers === "object") {
+      customers = parsed.customers;
+      saveCustomers(customers);
+    }
+
+    if (parsed.shippers && typeof parsed.shippers === "object") {
+      shippers = parsed.shippers;
+      saveMap(SHIPPER_KEY, shippers);
+      // refresh dropdown list if available
+      if (typeof fillDatalist === "function") fillDatalist(document.getElementById("shipperList"), shippers);
+    }
+
+    if (parsed.consignees && typeof parsed.consignees === "object") {
+      consignees = parsed.consignees;
+      saveMap(CONSIGNEE_KEY, consignees);
+      // refresh dropdown list if available
+      if (typeof fillDatalist === "function") fillDatalist(document.getElementById("consigneeList"), consignees);
+    }
+
+    renderLoads();
+    alert("Imported everything successfully.");
+  } catch {
+    alert("Import failed. Make sure you selected the exported backup JSON file.");
+  } finally {
+    e.target.value = "";
+  }
+});
+  
 
   els.clearBtn.addEventListener("click", () => {
     if (!confirm("Clear all loads on this device?")) return;
