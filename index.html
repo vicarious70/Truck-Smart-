@@ -83,7 +83,180 @@
       Company info saves on THIS device. If you use another device, you’ll enter it again.
     </div>
   </div>
+<div class="card no-print" id="calcCard">
+  <h3 style="margin-top:0;">Rate & Profit Calculator (Before You Accept)</h3>
+  <div class="muted">Shows both Loaded RPM (broker) and All-In RPM (true).</div>
 
+  <div class="twoCol" style="margin-top:10px;">
+    <!-- SETTINGS -->
+    <div class="box">
+      <h4 style="margin:0 0 8px 0;">Owner-Op Settings</h4>
+
+      <div class="row">
+        <div>
+          <label>MPG</label>
+          <input id="calc_mpg" type="number" step="0.1" />
+        </div>
+        <div>
+          <label>Fuel Price ($/gal)</label>
+          <input id="calc_fuelPrice" type="number" step="0.01" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Weekly Fixed Costs ($/week)</label>
+          <input id="calc_weeklyFixed" type="number" step="1" />
+        </div>
+        <div>
+          <label>Expected Weekly Miles</label>
+          <input id="calc_weeklyMiles" type="number" step="1" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Maintenance Reserve ($/mi)</label>
+          <input id="calc_maintPerMi" type="number" step="0.01" />
+        </div>
+        <div>
+          <label>Other Variable ($/mi)</label>
+          <input id="calc_otherVarPerMi" type="number" step="0.01" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Dispatch Fee (%)</label>
+          <input id="calc_dispatchPct" type="number" step="0.1" />
+        </div>
+        <div>
+          <label>Factoring Fee (%)</label>
+          <input id="calc_factoringPct" type="number" step="0.1" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Minimum Profit ($/mi)</label>
+          <input id="calc_minProfitPerMi" type="number" step="0.01" />
+        </div>
+        <div>
+          <label>Target Profit ($/mi)</label>
+          <input id="calc_targetProfitPerMi" type="number" step="0.01" />
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:10px;">
+        <button id="calc_saveSettingsBtn" type="button">Save Settings</button>
+        <button id="calc_resetDefaultsBtn" type="button">Reset Defaults</button>
+      </div>
+
+      <div class="muted" id="calc_quickStats" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- EVALUATE LOAD -->
+    <div class="box">
+      <h4 style="margin:0 0 8px 0;">Evaluate a Load</h4>
+
+      <div class="row">
+        <div>
+          <label>Offered Rate ($)</label>
+          <input id="calc_rate" type="number" step="0.01" placeholder="2500" />
+        </div>
+        <div>
+          <label>Loaded Miles</label>
+          <input id="calc_loadedMiles" type="number" step="1" placeholder="1000" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Deadhead Miles</label>
+          <input id="calc_deadheadMiles" type="number" step="1" placeholder="150" />
+        </div>
+        <div>
+          <label>Other Trip Costs ($)</label>
+          <input id="calc_tripOther" type="number" step="0.01" placeholder="0" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Tolls ($)</label>
+          <input id="calc_tolls" type="number" step="0.01" placeholder="0" />
+        </div>
+        <div>
+          <label>Lumper ($)</label>
+          <input id="calc_lumper" type="number" step="0.01" placeholder="0" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Scales ($)</label>
+          <input id="calc_scales" type="number" step="0.01" placeholder="0" />
+        </div>
+        <div>
+          <label>Fuel Override ($/gal) (optional)</label>
+          <input id="calc_fuelOverride" type="number" step="0.01" placeholder="leave blank" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>MPG Override (optional)</label>
+          <input id="calc_mpgOverride" type="number" step="0.1" placeholder="leave blank" />
+        </div>
+        <div>
+          <label>Notes (optional)</label>
+          <input id="calc_notes" placeholder="Broker, lane, etc." />
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:10px;">
+        <button id="calc_calculateBtn" type="button">Calculate</button>
+        <button id="calc_saveEvalBtn" type="button">Save Evaluation</button>
+      </div>
+
+      <hr style="margin:12px 0;" />
+
+      <h4 style="margin:0 0 6px 0;">Results</h4>
+      <div id="calc_verdict" style="font-weight:bold; margin-bottom:8px;"></div>
+
+      <div class="twoCol">
+        <div class="box">
+          <div><b>Net Profit:</b> <span id="calc_netProfit">$0</span></div>
+          <div><b>Net / Total Mile:</b> <span id="calc_netPerMi">$0/mi</span></div>
+          <div class="muted"><span id="calc_milesLine"></span></div>
+        </div>
+        <div class="box">
+          <div><b>Loaded RPM (broker):</b> <span id="calc_loadedRpm">$—</span></div>
+          <div><b>All-In RPM (true):</b> <span id="calc_allInRpm">$—</span></div>
+        </div>
+      </div>
+
+      <div class="box" style="margin-top:10px;">
+        <div style="font-weight:bold; margin-bottom:6px;">What to Ask For</div>
+        <div><b>Minimum Total Rate:</b> <span id="calc_minRate">$—</span></div>
+        <div class="muted">Min Loaded RPM: <span id="calc_minLoadedRpm">$—</span> • Min All-In RPM: <span id="calc_minAllInRpm">$—</span></div>
+        <div style="margin-top:6px;"><b>Target Total Rate:</b> <span id="calc_targetRate">$—</span></div>
+        <div class="muted">Target Loaded RPM: <span id="calc_targetLoadedRpm">$—</span> • Target All-In RPM: <span id="calc_targetAllInRpm">$—</span></div>
+        <div style="margin-top:6px;"><b>Ask for:</b> <span id="calc_askMore">$—</span></div>
+      </div>
+
+      <details style="margin-top:10px;">
+        <summary><b>Breakdown</b></summary>
+        <div class="muted" id="calc_breakdown" style="margin-top:8px;"></div>
+      </details>
+
+      <hr style="margin:12px 0;" />
+      <h4 style="margin:0 0 6px 0;">Saved Evaluations</h4>
+      <div class="muted" id="calc_historyEmpty">No evaluations saved yet.</div>
+      <div id="calc_history"></div>
+    </div>
+  </div>
+</div>
   <div class="card no-print">
     <h3 style="margin-top:0;">Add Load</h3>
 
@@ -204,7 +377,31 @@ window.addEventListener("DOMContentLoaded", () => {
 const CUSTOMER_KEY = "tms_customers_v1";
 const SHIPPER_KEY = "tms_shippers_v1";
 const CONSIGNEE_KEY = "tms_consignees_v1";
+const CALC_SETTINGS_KEY = "tms_calc_settings_v1";
+const CALC_HISTORY_KEY = "tms_calc_history_v1";
 
+function loadJson(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+  catch { return fallback; }
+}
+function saveJson(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}const CALC_DEFAULTS = {
+  mpg: 6.5,
+  fuelPrice: 3.80,
+  weeklyFixed: 1800,
+  weeklyMiles: 2500,
+  maintPerMi: 0.15,
+  otherVarPerMi: 0.00,
+  dispatchPct: 0,
+  factoringPct: 0,
+  minProfitPerMi: 0.40,
+  targetProfitPerMi: 0.70,
+};
+
+let calcSettings = loadJson(CALC_SETTINGS_KEY, CALC_DEFAULTS);
+let calcHistory = loadJson(CALC_HISTORY_KEY, []);
+let calcLastResult = null;
 function loadMap(key) {
   try { return JSON.parse(localStorage.getItem(key) || "{}"); }
   catch { return {}; }
@@ -271,7 +468,194 @@ let customers = loadCustomers();
     clearBtn: document.getElementById("clearBtn"),
     addBtn: document.getElementById("addBtn"),
     saveBizBtn: document.getElementById("saveBizBtn"),
-  };const customerInput = document.getElementById("customer");
+  };
+  // --- Calculator helpers ---
+function fmtMoney(n) {
+  const x = Number(n || 0);
+  return x.toLocaleString(undefined, { style: "currency", currency: "USD" });
+}
+function fmtNum(n, digits = 2) {
+  const x = Number(n || 0);
+  return x.toFixed(digits);
+}
+
+function setCalcFormFromSettings() {
+  document.getElementById("calc_mpg").value = calcSettings.mpg;
+  document.getElementById("calc_fuelPrice").value = calcSettings.fuelPrice;
+  document.getElementById("calc_weeklyFixed").value = calcSettings.weeklyFixed;
+  document.getElementById("calc_weeklyMiles").value = calcSettings.weeklyMiles;
+  document.getElementById("calc_maintPerMi").value = calcSettings.maintPerMi;
+  document.getElementById("calc_otherVarPerMi").value = calcSettings.otherVarPerMi;
+  document.getElementById("calc_dispatchPct").value = calcSettings.dispatchPct;
+  document.getElementById("calc_factoringPct").value = calcSettings.factoringPct;
+  document.getElementById("calc_minProfitPerMi").value = calcSettings.minProfitPerMi;
+  document.getElementById("calc_targetProfitPerMi").value = calcSettings.targetProfitPerMi;
+
+  const fixedPerMi = calcSettings.weeklyMiles
+    ? calcSettings.weeklyFixed / calcSettings.weeklyMiles
+    : 0;
+
+  document.getElementById("calc_quickStats").textContent =
+    `Fixed cost/mi: ${fmtMoney(fixedPerMi)} • Targets: min ${fmtMoney(calcSettings.minProfitPerMi)}/mi, target ${fmtMoney(calcSettings.targetProfitPerMi)}/mi`;
+}
+
+function readCalcSettingsFromForm() {
+  calcSettings = {
+    mpg: Number(document.getElementById("calc_mpg").value || CALC_DEFAULTS.mpg),
+    fuelPrice: Number(document.getElementById("calc_fuelPrice").value || CALC_DEFAULTS.fuelPrice),
+    weeklyFixed: Number(document.getElementById("calc_weeklyFixed").value || CALC_DEFAULTS.weeklyFixed),
+    weeklyMiles: Number(document.getElementById("calc_weeklyMiles").value || CALC_DEFAULTS.weeklyMiles),
+    maintPerMi: Number(document.getElementById("calc_maintPerMi").value || CALC_DEFAULTS.maintPerMi),
+    otherVarPerMi: Number(document.getElementById("calc_otherVarPerMi").value || CALC_DEFAULTS.otherVarPerMi),
+    dispatchPct: Number(document.getElementById("calc_dispatchPct").value || 0),
+    factoringPct: Number(document.getElementById("calc_factoringPct").value || 0),
+    minProfitPerMi: Number(document.getElementById("calc_minProfitPerMi").value || CALC_DEFAULTS.minProfitPerMi),
+    targetProfitPerMi: Number(document.getElementById("calc_targetProfitPerMi").value || CALC_DEFAULTS.targetProfitPerMi),
+  };
+}
+
+function calcCompute() {
+  const rate = Number(document.getElementById("calc_rate").value || 0);
+  const LM = Number(document.getElementById("calc_loadedMiles").value || 0);
+  const DH = Number(document.getElementById("calc_deadheadMiles").value || 0);
+  const TM = LM + DH;
+
+  const tolls = Number(document.getElementById("calc_tolls").value || 0);
+  const lumper = Number(document.getElementById("calc_lumper").value || 0);
+  const scales = Number(document.getElementById("calc_scales").value || 0);
+  const tripOther = Number(document.getElementById("calc_tripOther").value || 0);
+  const tripCosts = tolls + lumper + scales + tripOther;
+
+  const fuelOverride = document.getElementById("calc_fuelOverride").value;
+  const mpgOverride = document.getElementById("calc_mpgOverride").value;
+
+  const fuelPrice = fuelOverride ? Number(fuelOverride) : calcSettings.fuelPrice;
+  const mpg = mpgOverride ? Number(mpgOverride) : calcSettings.mpg;
+
+  const feePct = (calcSettings.dispatchPct + calcSettings.factoringPct) / 100;
+  const fees = rate * feePct;
+
+  const gallons = mpg > 0 ? TM / mpg : 0;
+  const fuel = gallons * fuelPrice;
+
+  const variable = TM * (calcSettings.maintPerMi + calcSettings.otherVarPerMi);
+
+  const fixedPerMi =
+    calcSettings.weeklyMiles > 0
+      ? calcSettings.weeklyFixed / calcSettings.weeklyMiles
+      : 0;
+
+  const fixedAllocated = TM * fixedPerMi;
+
+  const net = rate - fees - fuel - tripCosts - variable - fixedAllocated;
+  const netPerMi = TM > 0 ? net / TM : 0;
+
+  const loadedRpm = LM > 0 ? rate / LM : null;
+  const allInRpm = TM > 0 ? rate / TM : null;
+
+  const otherCosts = fuel + tripCosts + variable + fixedAllocated;
+  const minGoal = TM * calcSettings.minProfitPerMi;
+  const targetGoal = TM * calcSettings.targetProfitPerMi;
+
+  const minRate =
+    1 - feePct > 0 ? (minGoal + otherCosts) / (1 - feePct) : null;
+  const targetRate =
+    1 - feePct > 0 ? (targetGoal + otherCosts) / (1 - feePct) : null;
+
+  const verdict =
+    netPerMi >= calcSettings.targetProfitPerMi
+      ? "✅ TAKE IT"
+      : netPerMi >= calcSettings.minProfitPerMi
+      ? "⚠️ BORDERLINE"
+      : "❌ PASS";
+
+  return {
+    rate, LM, DH, TM,
+    fees, fuel, tripCosts, variable, fixedAllocated,
+    net, netPerMi,
+    loadedRpm, allInRpm,
+    minRate, targetRate,
+    verdict
+  };
+}
+
+function calcRender(r) {
+  document.getElementById("calc_verdict").textContent = r.verdict;
+  document.getElementById("calc_netProfit").textContent = fmtMoney(r.net);
+  document.getElementById("calc_netPerMi").textContent = `${fmtMoney(r.netPerMi)}/mi`;
+  document.getElementById("calc_milesLine").textContent =
+    `Loaded ${r.LM} • Deadhead ${r.DH} • Total ${r.TM}`;
+
+  document.getElementById("calc_loadedRpm").textContent =
+    r.loadedRpm == null ? "$—" : `${fmtMoney(r.loadedRpm)}/mi`;
+  document.getElementById("calc_allInRpm").textContent =
+    r.allInRpm == null ? "$—" : `${fmtMoney(r.allInRpm)}/mi`;
+
+  document.getElementById("calc_minRate").textContent =
+    r.minRate == null ? "$—" : fmtMoney(r.minRate);
+  document.getElementById("calc_targetRate").textContent =
+    r.targetRate == null ? "$—" : fmtMoney(r.targetRate);
+
+  document.getElementById("calc_askMore").textContent =
+    r.targetRate ? fmtMoney(r.targetRate - r.rate) : "$—";
+}
+
+// --- Calculator button wiring ---
+document.getElementById("calc_saveSettingsBtn").addEventListener("click", () => {
+  readCalcSettingsFromForm();
+  saveJson(CALC_SETTINGS_KEY, calcSettings);
+  setCalcFormFromSettings();
+  alert("Calculator settings saved.");
+});
+
+document.getElementById("calc_resetDefaultsBtn").addEventListener("click", () => {
+  calcSettings = { ...CALC_DEFAULTS };
+  saveJson(CALC_SETTINGS_KEY, calcSettings);
+  setCalcFormFromSettings();
+  alert("Defaults restored.");
+});
+
+document.getElementById("calc_calculateBtn").addEventListener("click", () => {
+  readCalcSettingsFromForm();
+  const r = calcCompute();
+  calcRender(r);
+});
+}
+function fmtNum(n, digits = 2) {
+  const x = Number(n || 0);
+  return x.toFixed(digits);
+}
+
+function setCalcFormFromSettings() {
+  document.getElementById("calc_mpg").value = calcSettings.mpg;
+  document.getElementById("calc_fuelPrice").value = calcSettings.fuelPrice;
+  document.getElementById("calc_weeklyFixed").value = calcSettings.weeklyFixed;
+  document.getElementById("calc_weeklyMiles").value = calcSettings.weeklyMiles;
+  document.getElementById("calc_maintPerMi").value = calcSettings.maintPerMi;
+  document.getElementById("calc_otherVarPerMi").value = calcSettings.otherVarPerMi;
+  document.getElementById("calc_dispatchPct").value = calcSettings.dispatchPct;
+  document.getElementById("calc_factoringPct").value = calcSettings.factoringPct;
+  document.getElementById("calc_minProfitPerMi").value = calcSettings.minProfitPerMi;
+  document.getElementById("calc_targetProfitPerMi").value = calcSettings.targetProfitPerMi;
+
+  const fixedPerMi = calcSettings.weeklyMiles
+    ? calcSettings.weeklyFixed / calcSettings.weeklyMiles
+    : 0;
+
+  document.getElementById("calc_quickStats").textContent =
+    `Fixed cost/mi: ${fmtMoney(fixedPerMi)} • Targets: min ${fmtMoney(calcSettings.minProfitPerMi)}/mi, target ${fmtMoney(calcSettings.targetProfitPerMi)}/mi`;
+}
+
+function readCalcSettingsFromForm() {
+  calcSettings = {
+    mpg: Number(document.getElementById("calc_mpg").value || CALC_DEFAULTS.mpg),
+    fuelPrice: Number(document.getElementById("calc_fuelPrice").value || CALC_DEFAULT
+};
+
+let calcSettings = loadJson(CALC_SETTINGS_KEY, CALC_DEFAULTS);
+let calcHistory = loadJson(CALC_HISTORY_KEY, []);
+let calcLastResult = null;
+  const customerInput = document.getElementById("customer");
 const customerAddressInput = document.getElementById("customerAddress");
 const saveCustomerBtn = document.getElementById("saveCustomerBtn");
 // --- Shipper / Consignee dropdown + autofill ---
@@ -624,6 +1008,7 @@ els.importFile.addEventListener("change", async (e) => {
     }
 
     renderLoads();
+    setCalcFormFromSettings();
     alert("Imported everything successfully.");
   } catch {
     alert("Import failed. Make sure you selected the exported backup JSON file.");
