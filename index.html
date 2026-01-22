@@ -91,6 +91,13 @@
       <div>
         <label>Customer (Bill To)</label>
         <input id="customer" placeholder="ABC Logistics" />
+     <label>Customer Address (Bill To)</label>
+<textarea id="customerAddress" rows="2" placeholder="Street&#10;City, State ZIP"></textarea>
+
+<div style="margin-top:10px;" class="actions">
+  <button id="saveCustomerBtn" type="button">Save Customer</button>
+</div>
+<div class="muted">Tip: Save once, then typing the same customer name will auto-fill the address.</div>
       </div>
       <div>
         <label>Invoice #</label>
@@ -186,7 +193,17 @@
 window.addEventListener("DOMContentLoaded", () => {
   const KEY = "tms_loads_v1";
   const COMPANY_KEY = "tms_company_v1";
+const CUSTOMER_KEY = "tms_customers_v1";
 
+function loadCustomers() {
+  try { return JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "{}"); }
+  catch { return {}; }
+}
+function saveCustomers(map) {
+  localStorage.setItem(CUSTOMER_KEY, JSON.stringify(map));
+}
+
+let customers = loadCustomers();
   function loadData() {
     try { return JSON.parse(localStorage.getItem(KEY) || "[]"); }
     catch { return []; }
@@ -234,7 +251,32 @@ window.addEventListener("DOMContentLoaded", () => {
     clearBtn: document.getElementById("clearBtn"),
     addBtn: document.getElementById("addBtn"),
     saveBizBtn: document.getElementById("saveBizBtn"),
-  };
+  };const customerInput = document.getElementById("customer");
+const customerAddressInput = document.getElementById("customerAddress");
+const saveCustomerBtn = document.getElementById("saveCustomerBtn");
+
+function autofillCustomerAddress() {
+  const name = (customerInput.value || "").trim().toLowerCase();
+  if (!name) return;
+  const saved = customers[name];
+  if (saved && !customerAddressInput.value.trim()) {
+    customerAddressInput.value = saved.address || "";
+  }
+}
+
+customerInput.addEventListener("blur", autofillCustomerAddress);
+customerInput.addEventListener("change", autofillCustomerAddress);
+
+saveCustomerBtn.addEventListener("click", () => {
+  const nameRaw = (customerInput.value || "").trim();
+  const address = (customerAddressInput.value || "").trim();
+  if (!nameRaw) { alert("Enter a customer name first."); return; }
+  if (!address) { alert("Enter the customer address to save."); return; }
+
+  customers[nameRaw.toLowerCase()] = { name: nameRaw, address };
+  saveCustomers(customers);
+  alert("Customer saved. Next time the address will auto-fill.");
+});
 
   function fillCompanyForm() {
     document.getElementById("bizName").value = company.bizName || "";
@@ -299,9 +341,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
     els.invBody.innerHTML = `
       ${companyBlock}
-
-      <p><b>Bill To:</b> ${escapeHtml(l.customer || "")}</p>
-
+<p><b>Bill To:</b><br/>
+  ${escapeHtml(l.customer || "—")}<br/>
+  ${escapeHtml(l.customerAddress || "—").replaceAll("\n","<br/>")}
+</p>
+      
       <div class="twoCol" style="margin:10px 0;">
         <div class="box">
           <b>Shipper:</b><br/>
@@ -344,7 +388,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Save Load
   els.addBtn.addEventListener("click", () => {
-    const l = {
+    const l = {customerAddress: (document.getElementById("customerAddress").value || "").trim(),
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       customer: (document.getElementById("customer").value || "").trim(),
       invoiceNo: (document.getElementById("invoiceNo").value || "").trim(),
