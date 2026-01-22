@@ -119,20 +119,28 @@
     <div class="row">
       <div>
         <label>Shipper (Company Name)</label>
-        <input id="shipperName" placeholder="ABC Warehouse" />
+        <input id="shipperName" list="shipperList" placeholder="ABC Warehouse" />
+<datalist id="shipperList"></datalist>
       </div>
       <div>
         <label>Consignee (Company Name)</label>
-        <input id="consigneeName" placeholder="XYZ Distribution" />
+        <input id="consigneeName" list="consigneeList" placeholder="XYZ Distribution" />
+<datalist id="consigneeList"></datalist>
       </div>
     </div>
 
     <label>Shipper Address</label>
     <textarea id="shipperAddress" rows="2" placeholder="Street&#10;City, State ZIP"></textarea>
-
+<div style="margin-top:10px;" class="actions">
+  <button id="saveShipperBtn" type="button">Save Shipper</button>
+</div>
+<div class="muted">Tip: Save once. Next time select the shipper name from suggestions to auto-fill address.</div>
     <label>Consignee Address</label>
     <textarea id="consigneeAddress" rows="2" placeholder="Street&#10;City, State ZIP"></textarea>
-
+<div style="margin-top:10px;" class="actions">
+  <button id="saveConsigneeBtn" type="button">Save Consignee</button>
+</div>
+<div class="muted">Tip: Save once. Next time select the consignee name from suggestions to auto-fill address.</div>
     <div class="row">
       <div>
         <label>Pickup (City, ST)</label>
@@ -194,7 +202,19 @@ window.addEventListener("DOMContentLoaded", () => {
   const KEY = "tms_loads_v1";
   const COMPANY_KEY = "tms_company_v1";
 const CUSTOMER_KEY = "tms_customers_v1";
+const SHIPPER_KEY = "tms_shippers_v1";
+const CONSIGNEE_KEY = "tms_consignees_v1";
 
+function loadMap(key) {
+  try { return JSON.parse(localStorage.getItem(key) || "{}"); }
+  catch { return {}; }
+}
+function saveMap(key, map) {
+  localStorage.setItem(key, JSON.stringify(map));
+}
+
+let shippers = loadMap(SHIPPER_KEY);
+let consignees = loadMap(CONSIGNEE_KEY);
 function loadCustomers() {
   try { return JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "{}"); }
   catch { return {}; }
@@ -254,7 +274,84 @@ let customers = loadCustomers();
   };const customerInput = document.getElementById("customer");
 const customerAddressInput = document.getElementById("customerAddress");
 const saveCustomerBtn = document.getElementById("saveCustomerBtn");
+// --- Shipper / Consignee dropdown + autofill ---
+const shipperNameEl = document.getElementById("shipperName");
+const shipperAddrEl = document.getElementById("shipperAddress");
+const consigneeNameEl = document.getElementById("consigneeName");
+const consigneeAddrEl = document.getElementById("consigneeAddress");
 
+const shipperListEl = document.getElementById("shipperList");
+const consigneeListEl = document.getElementById("consigneeList");
+
+const saveShipperBtn = document.getElementById("saveShipperBtn");
+const saveConsigneeBtn = document.getElementById("saveConsigneeBtn");
+
+function normName(s) {
+  return (s || "").trim().toLowerCase();
+}
+
+function fillDatalist(listEl, map) {
+  if (!listEl) return;
+  listEl.innerHTML = "";
+  Object.values(map)
+    .sort((a,b) => (a.name||"").localeCompare(b.name||""))
+    .forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item.name;
+      listEl.appendChild(opt);
+    });
+}
+
+function autofillFromMap(nameEl, addrEl, map) {
+  const key = normName(nameEl.value);
+  if (!key) return;
+  const saved = map[key];
+  if (saved && !addrEl.value.trim()) {
+    addrEl.value = saved.address || "";
+  }
+}
+
+// Populate dropdowns on load
+fillDatalist(shipperListEl, shippers);
+fillDatalist(consigneeListEl, consignees);
+
+// Autofill when user selects or leaves field
+shipperNameEl.addEventListener("change", () =>
+  autofillFromMap(shipperNameEl, shipperAddrEl, shippers)
+);
+shipperNameEl.addEventListener("blur", () =>
+  autofillFromMap(shipperNameEl, shipperAddrEl, shippers)
+);
+
+consigneeNameEl.addEventListener("change", () =>
+  autofillFromMap(consigneeNameEl, consigneeAddrEl, consignees)
+);
+consigneeNameEl.addEventListener("blur", () =>
+  autofillFromMap(consigneeNameEl, consigneeAddrEl, consignees)
+);
+
+// Save buttons
+saveShipperBtn.addEventListener("click", () => {
+  const name = shipperNameEl.value.trim();
+  const address = shipperAddrEl.value.trim();
+  if (!name) return alert("Enter a shipper name first.");
+  if (!address) return alert("Enter the shipper address to save.");
+  shippers[normName(name)] = { name, address };
+  saveMap(SHIPPER_KEY, shippers);
+  fillDatalist(shipperListEl, shippers);
+  alert("Shipper saved. Select it next time to auto-fill.");
+});
+
+saveConsigneeBtn.addEventListener("click", () => {
+  const name = consigneeNameEl.value.trim();
+  const address = consigneeAddrEl.value.trim();
+  if (!name) return alert("Enter a consignee name first.");
+  if (!address) return alert("Enter the consignee address to save.");
+  consignees[normName(name)] = { name, address };
+  saveMap(CONSIGNEE_KEY, consignees);
+  fillDatalist(consigneeListEl, consignees);
+  alert("Consignee saved. Select it next time to auto-fill.");
+});
 function autofillCustomerAddress() {
   const name = (customerInput.value || "").trim().toLowerCase();
   if (!name) return;
