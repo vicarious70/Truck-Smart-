@@ -614,11 +614,13 @@ document.getElementById("calc_resetDefaultsBtn").addEventListener("click", () =>
   setCalcFormFromSettings();
   alert("Defaults restored.");
 });
-
 document.getElementById("calc_calculateBtn").addEventListener("click", () => {
+  alert("Calculate clicked!");
   readCalcSettingsFromForm();
   const r = calcCompute();
   calcRender(r);
+});
+
 });
 }
 function fmtNum(n, digits = 2) {
