@@ -310,7 +310,10 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   els.addBtn.addEventListener("click", () => {
-    const l = {
+    const l = {shipperName: document.getElementById("shipperName").value.trim(),
+shipperAddress: document.getElementById("shipperAddress").value.trim(),
+consigneeName: document.getElementById("consigneeName").value.trim(),
+consigneeAddress: document.getElementById("consigneeAddress").value.trim(),
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       customer: document.getElementById("customer").value.trim(),
       loadNo: document.getElementById("loadNo").value.trim(),
