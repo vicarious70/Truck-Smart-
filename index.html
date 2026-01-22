@@ -12,7 +12,7 @@
     input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 8px; }
     button { padding: 10px 12px; border-radius: 10px; border: 1px solid #888; background: #fff; }
     table { width: 100%; border-collapse: collapse; }
-    th, td { text-align:left; padding: 8px; border-bottom: 1px solid #eee; }
+    th, td { text-align:left; padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; }
     .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .muted { color:#666; font-size: 12px; }
     .actions { display:flex; gap:8px; flex-wrap:wrap; }
@@ -27,7 +27,7 @@
   <header class="no-print">
     <div>
       <h2 style="margin:0;">Trucking Made Simple</h2>
-      <div class="muted">Starter billing + invoices (saved on this device)</div>
+      <div class="muted">Billing + invoices (saved on this device). Export regularly for backup.</div>
     </div>
     <div class="actions">
       <button id="printInvoiceBtn" disabled>Print Invoice</button>
@@ -39,7 +39,6 @@
   </header>
 
   <div class="card no-print">
-<div class="card no-print">
     <h3 style="margin-top:0;">Company Settings (prints on invoices)</h3>
 
     <div class="row">
@@ -73,12 +72,12 @@
     <div style="margin-top:10px;" class="actions">
       <button id="saveBizBtn">Save Company Info</button>
     </div>
-
     <div class="muted" style="margin-top:6px;">
-      Saved on this device. Export your data regularly to back up everything.
+      Note: Company info saves on THIS device. If you use another device, you’ll enter it again.
     </div>
   </div>
-    
+
+  <div class="card no-print">
     <h3 style="margin-top:0;">Add Load</h3>
     <div class="row">
       <div>
@@ -124,14 +123,11 @@
       </div>
     </div>
 
-    <label>Notes</label>
+    <label>Notes (prints on invoice)</label>
     <textarea id="notes" rows="3" placeholder="Any notes for this load..."></textarea>
 
     <div style="margin-top:10px;" class="actions">
       <button id="addBtn">Save Load</button>
-    </div>
-    <div class="muted" style="margin-top:6px;">
-      Tip: This saves to your phone/tablet (localStorage). Export regularly to keep a backup.
     </div>
   </div>
 
@@ -158,12 +154,21 @@
     <div id="invBody"></div>
     <hr />
     <h3 style="margin:0;">Total Due: <span id="invTotal"></span></h3>
-    <div class="muted">Print this page for a simple invoice PDF.</div>
+    <div class="muted">Tip: On mobile, use your browser menu → Print → Save as PDF.</div>
   </div>
 
 <script>
+window.addEventListener("DOMContentLoaded", () => {
   const KEY = "tms_loads_v1";
   const COMPANY_KEY = "tms_company_v1";
+
+  function loadData() {
+    try { return JSON.parse(localStorage.getItem(KEY) || "[]"); }
+    catch { return []; }
+  }
+  function saveData(items) {
+    localStorage.setItem(KEY, JSON.stringify(items));
+  }
 
   function loadCompany() {
     try { return JSON.parse(localStorage.getItem(COMPANY_KEY) || "{}"); }
@@ -173,43 +178,54 @@
     localStorage.setItem(COMPANY_KEY, JSON.stringify(c));
   }
 
-  let company = loadCompany();
-const COMPANY_KEY = "tms_company_v1";
-
-  function loadCompany() {
-    try {
-      return JSON.parse(localStorage.getItem(COMPANY_KEY) || "{}");
-    } catch {
-      return {};
-    }
-  }
-  function saveCompany(c) {
-    localStorage.setItem(COMPANY_KEY, JSON.stringify(c));
-  }
-
-  let company = loadCompany();
-  function loadData() {
-    try { return JSON.parse(localStorage.getItem(KEY) || "[]"); }
-    catch { return []; }
-  }
-  function saveData(items) {
-    localStorage.setItem(KEY, JSON.stringify(items));
-  }
   function money(n) {
     const x = Number(n || 0);
     return x.toLocaleString(undefined, { style: "currency", currency: "USD" });
   }
 
+  function escapeHtml(s) {
+    return String(s || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
   let loads = loadData();
+  let company = loadCompany();
   let selectedId = null;
 
+  const els = {
+    loadsTbody: document.getElementById("loadsTbody"),
+    invoiceCard: document.getElementById("invoiceCard"),
+    invMeta: document.getElementById("invMeta"),
+    invBody: document.getElementById("invBody"),
+    invTotal: document.getElementById("invTotal"),
+    printInvoiceBtn: document.getElementById("printInvoiceBtn"),
+    exportBtn: document.getElementById("exportBtn"),
+    importBtn: document.getElementById("importBtn"),
+    importFile: document.getElementById("importFile"),
+    clearBtn: document.getElementById("clearBtn"),
+    addBtn: document.getElementById("addBtn"),
+    saveBizBtn: document.getElementById("saveBizBtn"),
+  };
+
+  function fillCompanyForm() {
+    document.getElementById("bizName").value = company.bizName || "";
+    document.getElementById("bizPhone").value = company.bizPhone || "";
+    document.getElementById("bizEmail").value = company.bizEmail || "";
+    document.getElementById("bizTerms").value = company.bizTerms || "";
+    document.getElementById("bizAddress").value = company.bizAddress || "";
+    document.getElementById("bizPay").value = company.bizPay || "";
+  }
+
   function renderLoads() {
-    const tbody = document.getElementById("loadsTbody");
-    tbody.innerHTML = "";
+    els.loadsTbody.innerHTML = "";
     if (!loads.length) {
       const tr = document.createElement("tr");
       tr.innerHTML = `<td colspan="5" class="muted">No loads yet. Add one above.</td>`;
-      tbody.appendChild(tr);
+      els.loadsTbody.appendChild(tr);
       return;
     }
     loads.forEach(l => {
@@ -224,17 +240,8 @@ const COMPANY_KEY = "tms_company_v1";
           <button data-action="delete" data-id="${l.id}">Delete</button>
         </td>
       `;
-      tbody.appendChild(tr);
+      els.loadsTbody.appendChild(tr);
     });
-  }
-
-  function escapeHtml(s) {
-    return String(s || "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
   }
 
   function showInvoice(id) {
@@ -242,12 +249,12 @@ const COMPANY_KEY = "tms_company_v1";
     if (!l) return;
     selectedId = id;
 
-    document.getElementById("invoiceCard").style.display = "block";
-    document.getElementById("printInvoiceBtn").disabled = false;
+    els.invoiceCard.style.display = "block";
+    els.printInvoiceBtn.disabled = false;
 
-    document.getElementById("invMeta").textContent =
-      `Invoice #${l.invoiceNo || ""} • Load ${l.loadNo || ""}`;
-const companyBlock = `
+    els.invMeta.textContent = `Invoice #${l.invoiceNo || ""} • Load ${l.loadNo || ""}`;
+
+    const companyBlock = `
       <div style="margin-bottom:10px;">
         <div><b>${escapeHtml(company.bizName || "Trucking Made Simple")}</b></div>
         <div>${escapeHtml(company.bizAddress || "").replaceAll("\n","<br/>")}</div>
@@ -260,19 +267,34 @@ const companyBlock = `
       ? `<p><b>Payment Instructions:</b><br/>${escapeHtml(company.bizPay).replaceAll("\n","<br/>")}</p>`
       : "";
 
-    document.getElementById("invBody").innerHTML = `
+    els.invBody.innerHTML = `
       ${companyBlock}
-      <p><b>Billed To:</b> ${escapeHtml(l.customer || "")}</p>
+      <p><b>Bill To:</b> ${escapeHtml(l.customer || "")}</p>
       <p><b>Route:</b> ${escapeHtml(l.pickup || "")} → ${escapeHtml(l.delivery || "")}</p>
       <p><b>Pickup Date:</b> ${escapeHtml(l.pickupDate || "")}<br/>
          <b>Delivery Date:</b> ${escapeHtml(l.deliveryDate || "")}</p>
       <p><b>Notes:</b><br/>${escapeHtml(l.notes || "").replaceAll("\n","<br/>")}</p>
       ${paymentBlock}
     `;
-    
+    els.invTotal.textContent = money(l.rate);
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }
 
-  document.getElementById("addBtn").addEventListener("click", () => {
+  // Button wiring
+  els.saveBizBtn.addEventListener("click", () => {
+    company = {
+      bizName: document.getElementById("bizName").value.trim(),
+      bizPhone: document.getElementById("bizPhone").value.trim(),
+      bizEmail: document.getElementById("bizEmail").value.trim(),
+      bizTerms: document.getElementById("bizTerms").value.trim(),
+      bizAddress: document.getElementById("bizAddress").value.trim(),
+      bizPay: document.getElementById("bizPay").value.trim(),
+    };
+    saveCompany(company);
+    alert("Company info saved on this device.");
+  });
+
+  els.addBtn.addEventListener("click", () => {
     const l = {
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       customer: document.getElementById("customer").value.trim(),
@@ -286,32 +308,9 @@ const companyBlock = `
       notes: document.getElementById("notes").value.trim(),
       createdAt: new Date().toISOString()
     };
+
     loads.unshift(l);
     saveData(loads);
-    // --- Company Settings ---
-  function fillCompanyForm() {
-    document.getElementById("bizName").value = company.bizName || "";
-    document.getElementById("bizPhone").value = company.bizPhone || "";
-    document.getElementById("bizEmail").value = company.bizEmail || "";
-    document.getElementById("bizTerms").value = company.bizTerms || "";
-    document.getElementById("bizAddress").value = company.bizAddress || "";
-    document.getElementById("bizPay").value = company.bizPay || "";
-  }
-
-  document.getElementById("saveBizBtn").addEventListener("click", () => {
-    company = {
-      bizName: document.getElementById("bizName").value.trim(),
-      bizPhone: document.getElementById("bizPhone").value.trim(),
-      bizEmail: document.getElementById("bizEmail").value.trim(),
-      bizTerms: document.getElementById("bizTerms").value.trim(),
-      bizAddress: document.getElementById("bizAddress").value.trim(),
-      bizPay: document.getElementById("bizPay").value.trim()
-    };
-    saveCompany(company);
-    alert("Company info saved on this device.");
-  });
-
-  fillCompanyForm();
     renderLoads();
 
     ["customer","loadNo","pickup","delivery","pickupDate","deliveryDate","rate","invoiceNo","notes"]
@@ -320,31 +319,35 @@ const companyBlock = `
     alert("Saved.");
   });
 
-  document.getElementById("loadsTbody").addEventListener("click", (e) => {
+  els.loadsTbody.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn) return;
     const id = btn.getAttribute("data-id");
     const action = btn.getAttribute("data-action");
+
     if (action === "view") showInvoice(id);
+
     if (action === "delete") {
       if (!confirm("Delete this load?")) return;
       loads = loads.filter(x => x.id !== id);
       saveData(loads);
+
       if (selectedId === id) {
-        document.getElementById("invoiceCard").style.display = "none";
-        document.getElementById("printInvoiceBtn").disabled = true;
+        els.invoiceCard.style.display = "none";
+        els.printInvoiceBtn.disabled = true;
       }
       renderLoads();
     }
   });
 
-  document.getElementById("printInvoiceBtn").addEventListener("click", () => {
+  els.printInvoiceBtn.addEventListener("click", () => {
     if (!selectedId) return;
     window.print();
   });
 
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(loads, null, 2)], { type: "application/json" });
+  els.exportBtn.addEventListener("click", () => {
+    const payload = { version: 1, exportedAt: new Date().toISOString(), loads };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -353,43 +356,20 @@ const companyBlock = `
     URL.revokeObjectURL(url);
   });
 
-  document.getElementById("importBtn").addEventListener("click", () => {
-    document.getElementById("importFile").click();
+  els.importBtn.addEventListener("click", () => {
+    els.importFile.click();
   });
 
-  document.getElementById("importFile").addEventListener("change", async (e) => {
+  els.importFile.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const text = await file.text();
     try {
       const parsed = JSON.parse(text);
-      if (!Array.isArray(parsed)) throw new Error("Not an array");
-      loads = parsed;
+      const incoming = Array.isArray(parsed) ? parsed : (parsed.loads || []);
+      if (!Array.isArray(incoming)) throw new Error("Bad format");
+      loads = incoming;
       saveData(loads);
-      // --- Company Settings ---
-  function fillCompanyForm() {
-    document.getElementById("bizName").value = company.bizName || "";
-    document.getElementById("bizPhone").value = company.bizPhone || "";
-    document.getElementById("bizEmail").value = company.bizEmail || "";
-    document.getElementById("bizTerms").value = company.bizTerms || "";
-    document.getElementById("bizAddress").value = company.bizAddress || "";
-    document.getElementById("bizPay").value = company.bizPay || "";
-  }
-
-  document.getElementById("saveBizBtn").addEventListener("click", () => {
-    company = {
-      bizName: document.getElementById("bizName").value.trim(),
-      bizPhone: document.getElementById("bizPhone").value.trim(),
-      bizEmail: document.getElementById("bizEmail").value.trim(),
-      bizTerms: document.getElementById("bizTerms").value.trim(),
-      bizAddress: document.getElementById("bizAddress").value.trim(),
-      bizPay: document.getElementById("bizPay").value.trim()
-    };
-    saveCompany(company);
-    alert("Company info saved on this device.");
-  });
-
-  fillCompanyForm();
       renderLoads();
       alert("Imported.");
     } catch {
@@ -399,16 +379,19 @@ const companyBlock = `
     }
   });
 
-  document.getElementById("clearBtn").addEventListener("click", () => {
+  els.clearBtn.addEventListener("click", () => {
     if (!confirm("Clear all loads on this device?")) return;
     loads = [];
     saveData(loads);
-    document.getElementById("invoiceCard").style.display = "none";
-    document.getElementById("printInvoiceBtn").disabled = true;
+    els.invoiceCard.style.display = "none";
+    els.printInvoiceBtn.disabled = true;
     renderLoads();
   });
 
+  // init
+  fillCompanyForm();
   renderLoads();
+});
 </script>
 </body>
 </html>
