@@ -16,10 +16,17 @@
     .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .muted { color:#666; font-size: 12px; }
     .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .twoCol { display:flex; gap:16px; }
+    .twoCol > div { flex:1; }
+    .box { border:1px solid #eee; border-radius:10px; padding:10px; }
+    @media (max-width: 720px) {
+      .twoCol { flex-direction: column; }
+    }
     @media print {
       .no-print { display:none !important; }
       body { margin: 0; }
       .card { border: none; }
+      .box { border: none; padding: 0; }
     }
   </style>
 </head>
@@ -73,38 +80,52 @@
       <button id="saveBizBtn">Save Company Info</button>
     </div>
     <div class="muted" style="margin-top:6px;">
-      Note: Company info saves on THIS device. If you use another device, you’ll enter it again.
+      Company info saves on THIS device. If you use another device, you’ll enter it again.
     </div>
   </div>
 
   <div class="card no-print">
     <h3 style="margin-top:0;">Add Load</h3>
+
     <div class="row">
       <div>
-        <label>Customer</label>
+        <label>Customer (Bill To)</label>
         <input id="customer" placeholder="ABC Logistics" />
       </div>
+      <div>
+        <label>Invoice #</label>
+        <input id="invoiceNo" placeholder="INV-1001" />
+      </div>
+    </div>
+
+    <div class="row">
       <div>
         <label>Load / Trip #</label>
         <input id="loadNo" placeholder="L-1001" />
       </div>
+      <div>
+        <label>Rate ($)</label>
+        <input id="rate" type="number" step="0.01" placeholder="2500.00" />
+      </div>
     </div>
-<div class="row">
-  <div>
-    <label>Shipper (Company Name)</label>
-    <input id="shipperName" placeholder="ABC Warehouse" />
-  </div>
-  <div>
-    <label>Consignee (Company Name)</label>
-    <input id="consigneeName" placeholder="XYZ Distribution" />
-  </div>
-</div>
 
-<label>Shipper Address</label>
-<textarea id="shipperAddress" rows="2" placeholder="Street&#10;City, State ZIP"></textarea>
+    <div class="row">
+      <div>
+        <label>Shipper (Company Name)</label>
+        <input id="shipperName" placeholder="ABC Warehouse" />
+      </div>
+      <div>
+        <label>Consignee (Company Name)</label>
+        <input id="consigneeName" placeholder="XYZ Distribution" />
+      </div>
+    </div>
 
-<label>Consignee Address</label>
-<textarea id="consigneeAddress" rows="2" placeholder="Street&#10;City, State ZIP"></textarea>
+    <label>Shipper Address</label>
+    <textarea id="shipperAddress" rows="2" placeholder="Street&#10;City, State ZIP"></textarea>
+
+    <label>Consignee Address</label>
+    <textarea id="consigneeAddress" rows="2" placeholder="Street&#10;City, State ZIP"></textarea>
+
     <div class="row">
       <div>
         <label>Pickup (City, ST)</label>
@@ -124,17 +145,6 @@
       <div>
         <label>Delivery Date</label>
         <input id="deliveryDate" type="date" />
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>Rate ($)</label>
-        <input id="rate" type="number" step="0.01" placeholder="2500.00" />
-      </div>
-      <div>
-        <label>Invoice #</label>
-        <input id="invoiceNo" placeholder="INV-1001" />
       </div>
     </div>
 
@@ -282,20 +292,43 @@ window.addEventListener("DOMContentLoaded", () => {
       ? `<p><b>Payment Instructions:</b><br/>${escapeHtml(company.bizPay).replaceAll("\n","<br/>")}</p>`
       : "";
 
+    const shipperName = l.shipperName || "—";
+    const shipperAddr = l.shipperAddress || "—";
+    const consigneeName = l.consigneeName || "—";
+    const consigneeAddr = l.consigneeAddress || "—";
+
     els.invBody.innerHTML = `
       ${companyBlock}
+
       <p><b>Bill To:</b> ${escapeHtml(l.customer || "")}</p>
+
+      <div class="twoCol" style="margin:10px 0;">
+        <div class="box">
+          <b>Shipper:</b><br/>
+          ${escapeHtml(shipperName)}<br/>
+          ${escapeHtml(shipperAddr).replaceAll("\n","<br/>")}
+        </div>
+        <div class="box">
+          <b>Consignee:</b><br/>
+          ${escapeHtml(consigneeName)}<br/>
+          ${escapeHtml(consigneeAddr).replaceAll("\n","<br/>")}
+        </div>
+      </div>
+
       <p><b>Route:</b> ${escapeHtml(l.pickup || "")} → ${escapeHtml(l.delivery || "")}</p>
+
       <p><b>Pickup Date:</b> ${escapeHtml(l.pickupDate || "")}<br/>
          <b>Delivery Date:</b> ${escapeHtml(l.deliveryDate || "")}</p>
+
       <p><b>Notes:</b><br/>${escapeHtml(l.notes || "").replaceAll("\n","<br/>")}</p>
+
       ${paymentBlock}
     `;
     els.invTotal.textContent = money(l.rate);
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }
 
-  // Button wiring
+  // Company Save
   els.saveBizBtn.addEventListener("click", () => {
     company = {
       bizName: document.getElementById("bizName").value.trim(),
@@ -309,25 +342,25 @@ window.addEventListener("DOMContentLoaded", () => {
     alert("Company info saved on this device.");
   });
 
+  // Save Load
   els.addBtn.addEventListener("click", () => {
-    const l = {shipperName: document.getElementById("shipperName").value.trim(),
-shipperAddress: document.getElementById("shipperAddress").value.trim(),
-consigneeName: document.getElementById("consigneeName").value.trim(),
-consigneeAddress: document.getElementById("consigneeAddress").value.trim(),
+    const l = {
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-      customer: document.getElementById("customer").value.trim(),
-               shipperName: document.getElementById("shipperName")?.value.trim() || "",
-shipperAddress: document.getElementById("shipperAddress")?.value.trim() || "",
-consigneeName: document.getElementById("consigneeName")?.value.trim() || "",
-consigneeAddress: document.getElementById("consigneeAddress")?.value.trim() || "",
-      loadNo: document.getElementById("loadNo").value.trim(),
-      pickup: document.getElementById("pickup").value.trim(),
-      delivery: document.getElementById("delivery").value.trim(),
+      customer: (document.getElementById("customer").value || "").trim(),
+      invoiceNo: (document.getElementById("invoiceNo").value || "").trim(),
+      loadNo: (document.getElementById("loadNo").value || "").trim(),
+      rate: document.getElementById("rate").value,
+
+      shipperName: (document.getElementById("shipperName").value || "").trim(),
+      shipperAddress: (document.getElementById("shipperAddress").value || "").trim(),
+      consigneeName: (document.getElementById("consigneeName").value || "").trim(),
+      consigneeAddress: (document.getElementById("consigneeAddress").value || "").trim(),
+
+      pickup: (document.getElementById("pickup").value || "").trim(),
+      delivery: (document.getElementById("delivery").value || "").trim(),
       pickupDate: document.getElementById("pickupDate").value,
       deliveryDate: document.getElementById("deliveryDate").value,
-      rate: document.getElementById("rate").value,
-      invoiceNo: document.getElementById("invoiceNo").value.trim(),
-      notes: document.getElementById("notes").value.trim(),
+      notes: (document.getElementById("notes").value || "").trim(),
       createdAt: new Date().toISOString()
     };
 
@@ -335,15 +368,25 @@ consigneeAddress: document.getElementById("consigneeAddress")?.value.trim() || "
     saveData(loads);
     renderLoads();
 
-    ["customer","loadNo","pickup","delivery","pickupDate","deliveryDate","rate","invoiceNo","notes"]
-      .forEach(id => document.getElementById(id).value = "");
+    // Clear form
+    document.getElementById("customer").value = "";
+    document.getElementById("invoiceNo").value = "";
+    document.getElementById("loadNo").value = "";
+    document.getElementById("rate").value = "";
+    document.getElementById("shipperName").value = "";
+    document.getElementById("shipperAddress").value = "";
+    document.getElementById("consigneeName").value = "";
+    document.getElementById("consigneeAddress").value = "";
+    document.getElementById("pickup").value = "";
+    document.getElementById("delivery").value = "";
+    document.getElementById("pickupDate").value = "";
+    document.getElementById("deliveryDate").value = "";
+    document.getElementById("notes").value = "";
 
     alert("Saved.");
-  });document.getElementById("shipperName").value = "";
-document.getElementById("shipperAddress").value = "";
-document.getElementById("consigneeName").value = "";
-document.getElementById("consigneeAddress").value = "";
+  });
 
+  // Table actions
   els.loadsTbody.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn) return;
@@ -370,6 +413,7 @@ document.getElementById("consigneeAddress").value = "";
     window.print();
   });
 
+  // Export / Import / Clear
   els.exportBtn.addEventListener("click", () => {
     const payload = { version: 1, exportedAt: new Date().toISOString(), loads };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -413,7 +457,7 @@ document.getElementById("consigneeAddress").value = "";
     renderLoads();
   });
 
-  // init
+  // Init
   fillCompanyForm();
   renderLoads();
 });
