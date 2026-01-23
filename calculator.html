@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trucking Made Simple — Rate & Profit Calculator</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    label { display:block; font-size: 13px; margin-bottom: 4px; }
+    input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; }
+    button { padding: 10px 12px; border-radius: 10px; border: 1px solid #333; background: #fff; font-size: 16px; }
+    .actions { display:flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .muted { color:#555; font-size: 13px; margin-top: 6px; }
+    .big { font-size: 18px; font-weight: 800; }
+    .pill { display:inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid #ccc; font-weight: 700; }
+    .two { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    @media (max-width: 700px) { .row, .two { grid-template-columns: 1fr; } }
+    details { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="big">Rate & Profit Calculator (Before You Accept)</div>
+    <div class="muted">Shows both Loaded RPM (broker) and All-In RPM (true). Saves settings on this device.</div>
+    <div class="actions" style="margin-top:10px;">
+      <a href="./" style="text-decoration:none;">← Back to main page</a>
+    </div>
+  </div>
+
+  <div class="card" id="settingsCard">
+    <div class="big">Owner-Op Settings</div>
+
+    <div class="row">
+      <div>
+        <label>MPG</label>
+        <input id="s_mpg" type="number" step="0.1" />
+      </div>
+      <div>
+        <label>Fuel Price ($/gal)</label>
+        <input id="s_fuel" type="number" step="0.01" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Weekly Fixed Costs ($/week)</label>
+        <input id="s_weeklyFixed" type="number" step="1" />
+      </div>
+      <div>
+        <label>Expected Weekly Miles</label>
+        <input id="s_weeklyMiles" type="number" step="1" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Maintenance Reserve ($/mi)</label>
+        <input id="s_maint" type="number" step="0.01" />
+      </div>
+      <div>
+        <label>Other Variable ($/mi)</label>
+        <input id="s_otherVar" type="number" step="0.01" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Dispatch Fee (%)</label>
+        <input id="s_dispatch" type="number" step="0.1" />
+      </div>
+      <div>
+        <label>Factoring Fee (%)</label>
+        <input id="s_factoring" type="number" step="0.1" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Minimum Profit ($/mi)</label>
+        <input id="s_minProfit" type="number" step="0.01" />
+      </div>
+      <div>
+        <label>Target Profit ($/mi)</label>
+        <input id="s_targetProfit" type="number" step="0.01" />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btnSave" type="button">Save Settings</button>
+      <button id="btnDefaults" type="button">Reset Defaults</button>
+    </div>
+
+    <div class="muted" id="quickStats"></div>
+  </div>
+
+  <div class="card" id="evalCard">
+    <div class="big">Evaluate a Load</div>
+
+    <div class="row">
+      <div>
+        <label>Offered Rate ($)</label>
+        <input id="l_rate" type="number" step="0.01" placeholder="2500" />
+      </div>
+      <div>
+        <label>Loaded Miles</label>
+        <input id="l_loaded" type="number" step="1" placeholder="1000" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Deadhead Miles</label>
+        <input id="l_deadhead" type="number" step="1" placeholder="150" />
+      </div>
+      <div>
+        <label>Tolls ($)</label>
+        <input id="l_tolls" type="number" step="0.01" placeholder="0" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Lumper ($)</label>
+        <input id="l_lumper" type="number" step="0.01" placeholder="0" />
+      </div>
+      <div>
+        <label>Scales ($)</label>
+        <input id="l_scales" type="number" step="0.01" placeholder="0" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Other Trip Cost ($)</label>
+        <input id="l_otherTrip" type="number" step="0.01" placeholder="0" />
+      </div>
+      <div>
+        <label>Fuel Override ($/gal) (optional)</label>
+        <input id="l_fuelOverride" type="number" step="0.01" placeholder="leave blank" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>MPG Override (optional)</label>
+        <input id="l_mpgOverride" type="number" step="0.1" placeholder="leave blank" />
+      </div>
+      <div>
+        <label>Notes (optional)</label>
+        <input id="l_notes" placeholder="lane, broker, etc." />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btnCalc" type="button">Calculate</button>
+    </div>
+
+    <div class="muted" id="debugLine"></div>
+  </div>
+
+  <div class="card" id="resultsCard">
+    <div class="big">Results</div>
+    <div id="verdict" class="pill">—</div>
+
+    <div class="two">
+      <div class="card" style="margin:0;">
+        <div><b>Net Profit:</b> <span id="netProfit">$0</span></div>
+        <div><b>Net / Total Mile:</b> <span id="netPerMi">$0/mi</span></div>
+        <div class="muted" id="milesLine"></div>
+      </div>
+      <div class="card" style="margin:0;">
+        <div><b>Loaded RPM (broker):</b> <span id="loadedRpm">$—</span></div>
+        <div><b>All-In RPM (true):</b> <span id="allInRpm">$—</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:10px;">
+      <div class="big" style="font-size:16px;">What to Ask For</div>
+      <div><b>Minimum Total Rate:</b> <span id="minRate">$—</span></div>
+      <div class="muted">Min Loaded RPM: <span id="minLoadedRpm">$—</span> • Min All-In RPM: <span id="minAllInRpm">$—</span></div>
+
+      <div style="margin-top:8px;"><b>Target Total Rate:</b> <span id="targetRate">$—</span></div>
+      <div class="muted">Target Loaded RPM: <span id="targetLoadedRpm">$—</span> • Target All-In RPM: <span id="targetAllInRpm">$—</span></div>
+
+      <div style="margin-top:8px;"><b>Ask for:</b> <span id="askMore">$—</span></div>
+    </div>
+
+    <details>
+      <summary><b>Breakdown</b></summary>
+      <div class="muted" id="breakdown"></div>
+    </details>
+  </div>
+
+<script>
+(() => {
+  const SETTINGS_KEY = "tms_calc_settings_v2";
+
+  const DEFAULTS = {
+    mpg: 6.5,
+    fuel: 3.80,
+    weeklyFixed: 1800,
+    weeklyMiles: 2500,
+    maint: 0.15,
+    otherVar: 0.00,
+    dispatchPct: 0,
+    factoringPct: 0,
+    minProfit: 0.40,
+    targetProfit: 0.70,
+  };
+
+  function loadSettings() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+      return s && typeof s === "object" ? { ...DEFAULTS, ...s } : { ...DEFAULTS };
+    } catch {
+      return { ...DEFAULTS };
+    }
+  }
+
+  function saveSettings(s) {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  function fmtMoney(n) {
+    const x = Number(n || 0);
+    return x.toLocaleString(undefined, { style: "currency", currency: "USD" });
+  }
+
+  function setQuickStats(s) {
+    const fixedPerMi = s.weeklyMiles > 0 ? (s.weeklyFixed / s.weeklyMiles) : 0;
+    $("quickStats").textContent =
+      `Fixed cost/mi: ${fmtMoney(fixedPerMi)} • Targets: min ${fmtMoney(s.minProfit)}/mi, target ${fmtMoney(s.targetProfit)}/mi`;
+  }
+
+  function setFormFromSettings(s) {
+    $("s_mpg").value = s.mpg;
+    $("s_fuel").value = s.fuel;
+    $("s_weeklyFixed").value = s.weeklyFixed;
+    $("s_weeklyMiles").value = s.weeklyMiles;
+    $("s_maint").value = s.maint;
+    $("s_otherVar").value = s.otherVar;
+    $("s_dispatch").value = s.dispatchPct;
+    $("s_factoring").value = s.factoringPct;
+    $("s_minProfit").value = s.minProfit;
+    $("s_targetProfit").value = s.targetProfit;
+    setQuickStats(s);
+  }
+
+  function readSettingsFromForm() {
+    return {
+      mpg: Number($("s_mpg").value || DEFAULTS.mpg),
+      fuel: Number($("s_fuel").value || DEFAULTS.fuel),
+      weeklyFixed: Number($("s_weeklyFixed").value || DEFAULTS.weeklyFixed),
+      weeklyMiles: Number($("s_weeklyMiles").value || DEFAULTS.weeklyMiles),
+      maint: Number($("s_maint").value || DEFAULTS.maint),
+      otherVar: Number($("s_otherVar").value || DEFAULTS.otherVar),
+      dispatchPct: Number($("s_dispatch").value || 0),
+      factoringPct: Number($("s_factoring").value || 0),
+      minProfit: Number($("s_minProfit").value || DEFAULTS.minProfit),
+      targetProfit: Number($("s_targetProfit").value || DEFAULTS.targetProfit),
+    };
+  }
+
+  function compute(s) {
+    const rate = Number($("l_rate").value || 0);
+    const LM = Number($("l_loaded").value || 0);
+    const DH = Number($("l_deadhead").value || 0);
+    const TM = LM + DH;
+
+    const tolls = Number($("l_tolls").value || 0);
+    const lumper = Number($("l_lumper").value || 0);
+    const scales = Number($("l_scales").value || 0);
+    const otherTrip = Number($("l_otherTrip").value || 0);
+    const tripCosts = tolls + lumper + scales + otherTrip;
+
+    const fuelOverride = $("l_fuelOverride").value;
+    const mpgOverride = $("l_mpgOverride").value;
+    const fuel = fuelOverride ? Number(fuelOverride) : s.fuel;
+    const mpg = mpgOverride ? Number(mpgOverride) : s.mpg;
+
+    const feePct = (s.dispatchPct + s.factoringPct) / 100;
+    const fees = rate * feePct;
+
+    const gallons = (mpg > 0) ? (TM / mpg) : 0;
+    const fuelCost = gallons * fuel;
+
+    const varPerMi = s.maint + s.otherVar;
+    const variable = TM * varPerMi;
+
+    const fixedPerMi = (s.weeklyMiles > 0) ? (s.weeklyFixed / s.weeklyMiles) : 0;
+    const fixedAllocated = TM * fixedPerMi;
+
+    const net = rate - fees - fuelCost - tripCosts - variable - fixedAllocated;
+    const netPerMi = (TM > 0) ? (net / TM) : 0;
+
+    const loadedRpm = (LM > 0) ? (rate / LM) : null;
+    const allInRpm = (TM > 0) ? (rate / TM) : null;
+
+    const otherCosts = fuelCost + tripCosts + variable + fixedAllocated;
+    const minGoal = TM * s.minProfit;
+    const targetGoal = TM * s.targetProfit;
+
+    const minRate = (1 - feePct) > 0 ? (minGoal + otherCosts) / (1 - feePct) : null;
+    const targetRate = (1 - feePct) > 0 ? (targetGoal + otherCosts) / (1 - feePct) : null;
+
+    const minLoadedRpm = (minRate != null && LM > 0) ? (minRate / LM) : null;
+    const minAllInRpm = (minRate != null && TM > 0) ? (minRate / TM) : null;
+    const targetLoadedRpm = (targetRate != null && LM > 0) ? (targetRate / LM) : null;
+    const targetAllInRpm = (targetRate != null && TM > 0) ? (targetRate / TM) : null;
+
+    let verdict = "—";
+    if (TM > 0) {
+      if (netPerMi >= s.targetProfit) verdict = "✅ TAKE IT";
+      else if (netPerMi >= s.minProfit) verdict = "⚠️ BORDERLINE";
+      else verdict = "❌ PASS";
+    }
+
+    const askMore = (targetRate != null) ? (targetRate - rate) : null;
+
+    return {
+      rate, LM, DH, TM, feePct, fees, gallons, fuel, fuelCost, tripCosts, variable,
+      fixedPerMi, fixedAllocated, net, netPerMi, loadedRpm, allInRpm,
+      minRate, targetRate, minLoadedRpm, minAllInRpm, targetLoadedRpm, targetAllInRpm,
+      askMore, verdict
+    };
+  }
+
+  function render(r) {
+    $("verdict").textContent = r.verdict;
+
+    $("netProfit").textContent = fmtMoney(r.net);
+    $("netPerMi").textContent = `${fmtMoney(r.netPerMi)}/mi`;
+    $("milesLine").textContent = `Loaded ${r.LM} • Deadhead ${r.DH} • Total ${r.TM}`;
+
+    $("loadedRpm").textContent = r.loadedRpm == null ? "$—" : `${fmtMoney(r.loadedRpm)}/mi`;
+    $("allInRpm").textContent = r.allInRpm == null ? "$—" : `${fmtMoney(r.allInRpm)}/mi`;
+
+    $("minRate").textContent = r.minRate == null ? "$—" : fmtMoney(r.minRate);
+    $("minLoadedRpm").textContent = r.minLoadedRpm == null ? "$—" : `${fmtMoney(r.minLoadedRpm)}/mi`;
+    $("minAllInRpm").textContent = r.minAllInRpm == null ? "$—" : `${fmtMoney(r.minAllInRpm)}/mi`;
+
+    $("targetRate").textContent = r.targetRate == null ? "$—" : fmtMoney(r.targetRate);
+    $("targetLoadedRpm").textContent = r.targetLoadedRpm == null ? "$—" : `${fmtMoney(r.targetLoadedRpm)}/mi`;
+    $("targetAllInRpm").textContent = r.targetAllInRpm == null ? "$—" : `${fmtMoney(r.targetAllInRpm)}/mi`;
+
+    $("askMore").textContent = r.askMore == null ? "$—" : fmtMoney(r.askMore);
+
+    $("breakdown").innerHTML = [
+      `Gross Rate: ${fmtMoney(r.rate)}`,
+      `Fees (${(r.feePct * 100).toFixed(1)}%): ${fmtMoney(r.fees)}`,
+      `Fuel (${r.gallons.toFixed(1)} gal @ ${fmtMoney(r.fuel)}): ${fmtMoney(r.fuelCost)}`,
+      `Trip Costs: ${fmtMoney(r.tripCosts)}`,
+      `Variable Reserves: ${fmtMoney(r.variable)}`,
+      `Fixed Allocation (${fmtMoney(r.fixedPerMi)}/mi): ${fmtMoney(r.fixedAllocated)}`
+    ].join("<br/>");
+  }
+
+  // Init
+  let settings = loadSettings();
+  setFormFromSettings(settings);
+
+  $("btnSave").addEventListener("click", () => {
+    settings = readSettingsFromForm();
+    saveSettings(settings);
+    setQuickStats(settings);
+    $("debugLine").textContent = "Settings saved ✅";
+  });
+
+  $("btnDefaults").addEventListener("click", () => {
+    settings = { ...DEFAULTS };
+    saveSettings(settings);
+    setFormFromSettings(settings);
+    $("debugLine").textContent = "Defaults restored ✅";
+  });
+
+  $("btnCalc").addEventListener("click", () => {
+    settings = readSettingsFromForm();
+    setQuickStats(settings);
+    const r = compute(settings);
+    render(r);
+    $("debugLine").textContent = "Calculated ✅";
+  });
+})();
+</script>
+
+</body>
+</html>
