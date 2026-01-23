@@ -615,11 +615,17 @@ document.getElementById("calc_resetDefaultsBtn").addEventListener("click", () =>
   setCalcFormFromSettings();
   alert("Defaults restored.");
 });
-document.getElementById("calc_calculateBtn").addEventListener("click", () => {
-  alert("Calculate clicked!");
-  readCalcSettingsFromForm();
-  const r = calcCompute();
-  calcRender(r);
+const calcBtn = document.getElementById("calc_calculateBtn");
+if (!calcBtn) {
+  alert("ERROR: calc_calculateBtn not found in HTML");
+} else {
+  calcBtn.addEventListener("click", () => {
+    alert("Calculate clicked!");
+    readCalcSettingsFromForm();
+    const r = calcCompute();
+    calcRender(r);
+  });
+}
 });
 });
 
