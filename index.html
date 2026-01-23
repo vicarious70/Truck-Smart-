@@ -191,83 +191,62 @@
     /* =========================
        PRINT: invoice-only output
     ========================= */
-@media print {
-  @page { margin: 12mm; }
+    @media print {
+      @page { margin: 14mm; }
 
-  html, body {
-    background:#fff !important;
-    color:#111 !important;
-    height:auto !important;
-  }
+      html, body {
+        background:#fff !important;
+        color:#111 !important;
+        height:auto !important;
+      }
 
-  /* KEY FIX: don't "display:none" main/header because invoicePreview is inside main.
-     Instead, hide everything via visibility, then reveal only #invoicePreview. */
-  body * {
-    visibility: hidden !important;
-  }
+      /* Hide the entire app UI */
+      header, main, #toast {
+        display:none !important;
+      }
 
-  /* If the invoices tab section was hidden (.hide), force it to exist for print */
-  #tab-invoices, #tab-invoices.hide {
-    display: block !important;
-  }
+      /* ONLY show the invoice preview area */
+      #invoicePreview {
+        display:block !important;
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
 
-  /* Reveal invoicePreview */
-  #invoicePreview, #invoicePreview * {
-    visibility: visible !important;
-  }
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
 
-  /* Position invoice at top-left for clean printing */
-  #invoicePreview {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
+        background: #fff !important;
+        color:#111 !important;
+        overflow: visible !important;
+      }
 
-    margin: 0 !important;
-    padding: 0 !important;
+      /* Remove the in-app preview padding so it prints flush */
+      .invoicePaper{
+        border:none !important;
+        border-radius:0 !important;
+        box-shadow:none !important;
+        padding:0 !important;
+        margin:0 !important;
+        background:#fff !important;
+        overflow: visible !important;
+      }
 
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+      /* Avoid splitting key blocks */
+      .invTop, .invBlock, .invTotal, .invTotalBox {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
 
-    background: #fff !important;
-    color:#111 !important;
-    overflow: visible !important;
-  }
-
-  /* Paper styling: remove in-app card vibes */
-  .invoicePaper{
-    border:none !important;
-    border-radius:0 !important;
-    box-shadow:none !important;
-    padding:0 !important;
-    margin:0 !important;
-    background:#fff !important;
-    overflow: visible !important;
-  }
-
-  /* Keep key blocks together where possible */
-  .invTop, .invBlock, .invTotal, .invTotalBox, .invSigRow, .invMetaGrid {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  /* Tables flow nicely across pages */
-  table { width:100% !important; border-collapse:collapse !important; }
-  thead { display: table-header-group; }
-  tfoot { display: table-footer-group; }
-
-  tr, td, th {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  /* Print colors reliably */
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-}
+      /* Tables: let them flow across pages cleanly */
+      table { width:100% !important; border-collapse:collapse !important; }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+      tr, td, th {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
 
       /* Don’t clip content */
       * { overflow: visible !important; }
@@ -276,7 +255,35 @@
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
-      }
+
+  /* ===== Loads Dropdown Styles ===== */
+  .loads-dropdown{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-top: 10px;
+  }
+
+  .loads-summary{
+    cursor: pointer;
+    padding: 12px 14px;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--chip);
+    user-select: none;
+    list-style: none;
+  }
+
+  .loads-summary::-webkit-details-marker{ 
+    display:none; 
+  }
+
+  .loads-content{
+    padding: 10px;
+    max-height: 420px;
+    overflow-y: auto;
     }
   </style>
 </head>
@@ -453,9 +460,15 @@
         <input id="importFile" type="file" accept="application/json" class="hide" />
       </div>
 
-      <div class="hr"></div>
-      <div class="list" id="tripList"></div>
-    </div>
+<div class="hr"></div>
+
+<details class="loads-dropdown">
+  <summary class="loads-summary">📦 Loads / Trips (tap to open)</summary>
+
+  <div class="loads-content">
+    <div class="list" id="tripList"></div>
+  </div>
+</details>
   </section>
 
   <!-- BUDGET -->
@@ -999,7 +1012,8 @@ document.addEventListener("DOMContentLoaded", () => {
         top.innerHTML = `
           <div>
             <div class="itemTitle"><b>${escapeHtml(t.company)}</b> · ${escapeHtml(t.pickup)} → ${escapeHtml(t.delivery)}</div>
-                        <div class="itemMeta mono">${escapeHtml(t.date)}
+            <div class="itemMeta mono">${escapeHtml(t.date)}
+            <div class="itemMeta mono">${escapeHtml(t.date)}
               · Truck ${escapeHtml(t.truck)} / Trailer ${escapeHtml(t.trailer)}
               ${t.ref ? " · Ref " + escapeHtml(t.ref) : ""}
             </div>
@@ -1519,146 +1533,81 @@ document.addEventListener("DOMContentLoaded", () => {
       const seq = String(Math.max(1,todays)).padStart(4,"0");
       return `INV-${d}-${seq}`;
     }
-    
-function buildInvoiceHTML(trip, invDate, invNo){
-  const safe = escapeHtml;
 
-  const miles = money(trip.totalMiles);
-  const loaded = money(trip.loadedMiles);
-  const deadhead = money(trip.deadheadMiles);
+    function buildInvoiceHTML(trip, invDate, invNo){
+      const safe = escapeHtml;
+      const items = [
+        { label: "Loaded miles", val: fmtNum(trip.loadedMiles) },
+        { label: "Deadhead miles", val: fmtNum(trip.deadheadMiles) },
+        { label: "Total miles", val: fmtNum(trip.totalMiles) }
+      ];
 
-  const revenue = money(trip.revenue);
-  const fuelCost = money(trip.fuelCost);
-  const tolls = money(trip.tolls);
-  const other = money(trip.other);
+      return `
+        <div class="invTop">
+          <div>
+            <div class="invH">INVOICE</div>
+            <div class="invMuted">Invoice #: <b>${safe(invNo)}</b></div>
+            <div class="invMuted">Invoice Date: <b>${safe(invDate)}</b></div>
+          </div>
+          <div style="text-align:right">
+            <div class="invMuted">Company</div>
+            <div style="font-size:14px;font-weight:700">${safe(trip.company)}</div>
+            <div class="invMuted">Truck ${safe(trip.truck)} · Trailer ${safe(trip.trailer)}</div>
+          </div>
+        </div>
 
-  const r = trip.reserves || {};
-  const resTires = money(r.tires);
-  const resMaint = money(r.maint);
-  const resPlates = money(r.plates);
-  const resIFTA = money(r.ifta);
-  const resTax = money(r.tax);
+        <div class="invGrid2">
+          <div class="invBlock">
+            <div style="font-weight:800;margin-bottom:6px">Load Info</div>
+            <div class="invMuted">Shipper: <b>${safe(trip.shipper)}</b></div>
+            <div class="invMuted">Broker/Customer: <b>${safe(trip.customer)}</b></div>
+            <div class="invMuted">Consignee: <b>${safe(trip.consignee)}</b></div>
+            ${trip.ref ? `<div class="invMuted">Reference: <b>${safe(trip.ref)}</b></div>` : ""}
+            ${trip.notes ? `<div class="invMuted">Notes: <b>${safe(trip.notes)}</b></div>` : ""}
+          </div>
 
-  const totalExpenses = money(trip.totals?.totalExpenses);
-  const net = money(trip.totals?.net);
-  const mpg = money(trip.totals?.mpg);
+          <div class="invBlock">
+            <div style="font-weight:800;margin-bottom:6px">Route</div>
+            <div class="invMuted">Pickup: <b>${safe(trip.pickup)}</b></div>
+            ${trip.pickupAddr ? `<div class="invMuted">${safe(trip.pickupAddr)}</div>` : ""}
+            <div class="invMuted" style="margin-top:8px">Delivery: <b>${safe(trip.delivery)}</b></div>
+            ${trip.deliveryAddr ? `<div class="invMuted">${safe(trip.deliveryAddr)}</div>` : ""}
+          </div>
+        </div>
 
-  const hasAddr = (s)=> (s && String(s).trim().length>0);
-  const line = (label, value)=> `
-    <div class="invMuted" style="margin:2px 0">
-      ${safe(label)}: <b>${safe(value)}</b>
-    </div>
-  `;
+        <table class="invTable">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th class="invRight">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Freight Charge</td>
+              <td class="invRight mono"><b>${fmtMoney(trip.revenue)}</b></td>
+            </tr>
+          </tbody>
+        </table>
 
-  const smallMoneyLine = (label, value)=> `
-    <div class="invLine"><span>${safe(label)}</span><span class="mono">${fmtMoney(value)}</span></div>
-  `;
+        <div class="invTotal">
+          <div class="invTotalBox">
+            <div class="invLine"><span>Subtotal</span><span class="mono">${fmtMoney(trip.revenue)}</span></div>
+            <div class="invLine invBig"><span>Total Due</span><span class="mono">${fmtMoney(trip.revenue)}</span></div>
+          </div>
+        </div>
 
-  return `
-    <div class="invTop">
-      <div>
-        <div class="invH">INVOICE</div>
-        <div class="invMuted">Invoice #: <b>${safe(invNo)}</b></div>
-        <div class="invMuted">Invoice Date: <b>${safe(invDate)}</b></div>
-        <div class="invMuted">Load Date: <b>${safe(trip.date || "")}</b></div>
-      </div>
+        <div class="invBlock" style="margin-top:12px">
+          <div style="font-weight:800;margin-bottom:6px">Trip Stats (for your records)</div>
+          ${items.map(x=>`<div class="invMuted">${safe(x.label)}: <b class="mono">${safe(x.val)}</b></div>`).join("")}
+        </div>
 
-      <div style="text-align:right; min-width:260px">
-        <div class="invMuted">Carrier / Company</div>
-        <div style="font-size:14px;font-weight:800">${safe(trip.company || "")}</div>
-        <div class="invMuted">Truck <b>${safe(trip.truck || "")}</b> · Trailer <b>${safe(trip.trailer || "")}</b> · Tire <b>${safe(trip.tireSize || "")}</b></div>
-      </div>
-    </div>
+        <div class="invMuted" style="margin-top:12px">
+          Thank you for your business.
+        </div>
+      `;
+    }
 
-    <div class="invGrid2 invMetaGrid">
-      <div class="invBlock">
-        <div style="font-weight:900;margin-bottom:8px">Load Information</div>
-        ${line("Shipper", trip.shipper || "")}
-        ${line("Broker / Customer", trip.customer || "")}
-        ${line("Consignee", trip.consignee || "")}
-        ${trip.ref ? line("Load / Reference #", trip.ref) : ""}
-        ${trip.notes ? line("Notes", trip.notes) : ""}
-      </div>
-
-      <div class="invBlock">
-        <div style="font-weight:900;margin-bottom:8px">Route</div>
-        ${line("Pickup (City/State)", trip.pickup || "")}
-        ${hasAddr(trip.pickupAddr) ? `<div class="invMuted">${safe(trip.pickupAddr)}</div>` : `<div class="invMuted"> </div>`}
-
-        <div style="height:8px"></div>
-
-        ${line("Delivery (City/State)", trip.delivery || "")}
-        ${hasAddr(trip.deliveryAddr) ? `<div class="invMuted">${safe(trip.deliveryAddr)}</div>` : `<div class="invMuted"> </div>`}
-      </div>
-    </div>
-
-    <table class="invTable">
-      <thead>
-        <tr>
-          <th>Description</th>
-          <th class="invRight">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <b>Freight Charge</b>
-            <div class="invMuted">Pickup: ${safe(trip.pickup || "")} → Delivery: ${safe(trip.delivery || "")}</div>
-            ${trip.ref ? `<div class="invMuted">Ref: ${safe(trip.ref)}</div>` : ""}
-          </td>
-          <td class="invRight mono"><b>${fmtMoney(revenue)}</b></td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="invGrid2">
-      <div class="invBlock">
-        <div style="font-weight:900;margin-bottom:8px">Trip Stats</div>
-        <div class="invMuted">Loaded miles: <b class="mono">${fmtNum(loaded)}</b></div>
-        <div class="invMuted">Deadhead miles: <b class="mono">${fmtNum(deadhead)}</b></div>
-        <div class="invMuted">Total miles: <b class="mono">${fmtNum(miles)}</b></div>
-        <div class="invMuted">Fuel gallons: <b class="mono">${fmtNum(money(trip.fuelGallons))}</b></div>
-        <div class="invMuted">Avg fuel cost/gal: <b class="mono">${fmtMoney(money(trip.fuelCostPerGallon))}</b></div>
-        <div class="invMuted">MPG (est): <b class="mono">${mpg.toFixed(2)}</b></div>
-      </div>
-
-      <div class="invBlock">
-        <div style="font-weight:900;margin-bottom:8px">Costs + Reserves (for your records)</div>
-        <div class="invMuted">Fuel cost: <b class="mono">${fmtMoney(fuelCost)}</b></div>
-        <div class="invMuted">Tolls: <b class="mono">${fmtMoney(tolls)}</b></div>
-        <div class="invMuted">Other trip expenses: <b class="mono">${fmtMoney(other)}</b></div>
-
-        <div class="invMuted" style="margin-top:8px; font-weight:800">Reserves</div>
-        <div class="invMuted">Tires: <b class="mono">${fmtMoney(resTires)}</b></div>
-        <div class="invMuted">Maintenance: <b class="mono">${fmtMoney(resMaint)}</b></div>
-        <div class="invMuted">Plates: <b class="mono">${fmtMoney(resPlates)}</b></div>
-        <div class="invMuted">IFTA (est): <b class="mono">${fmtMoney(resIFTA)}</b></div>
-        <div class="invMuted">Tax (est): <b class="mono">${fmtMoney(resTax)}</b></div>
-      </div>
-    </div>
-
-    <div class="invTotal">
-      <div class="invTotalBox">
-        ${smallMoneyLine("Freight charge", revenue)}
-        ${smallMoneyLine("Fuel + tolls + other (record)", fuelCost + tolls + other)}
-        ${smallMoneyLine("Reserves (record)", resTires + resMaint + resPlates + resIFTA + resTax)}
-        <div class="invLine"><span class="invMuted">Total expenses (record)</span><span class="mono">${fmtMoney(totalExpenses)}</span></div>
-        <div class="invLine invBig"><span>Total Due</span><span class="mono">${fmtMoney(revenue)}</span></div>
-        <div class="invLine"><span class="invMuted">Trip Net (record)</span><span class="mono">${fmtMoney(net)}</span></div>
-      </div>
-    </div>
-
-    <div class="invBlock invSigRow" style="margin-top:12px">
-      <div style="font-weight:900;margin-bottom:6px">Payment / Notes</div>
-      <div class="invMuted">Add your remittance address, payment terms, factoring info, etc. here (optional).</div>
-      <div class="invMuted" style="margin-top:10px">Carrier Signature: ____________________________</div>
-    </div>
-
-    <div class="invMuted" style="margin-top:12px">
-      Thank you for your business.
-    </div>
-  `;
-}
     function buildInvoicePreview(){
       const id = $("inv_trip")?.value;
       if(!id){ toast("Select a trip"); return; }
@@ -1676,40 +1625,14 @@ function buildInvoiceHTML(trip, invDate, invNo){
       toast("Invoice built");
     }
 
-function printInvoice(){
-  // Ensure invoice preview exists and invoice tab isn't hidden
-  const invoicesTab = document.querySelector('.tab[data-tab="invoices"]');
-  const invoicesSection = $("tab-invoices");
-
-  // Build preview if empty/placeholder
-  const preview = $("invoicePreview");
-  const isPlaceholder = preview && (preview.textContent || "").includes("No invoice selected");
-  if(isPlaceholder) buildInvoicePreview();
-
-  // Force invoices section visible for print (even if user is on another tab)
-  const wasHidden = invoicesSection?.classList.contains("hide");
-  if(invoicesSection) invoicesSection.classList.remove("hide");
-
-  // Also mark the tab active visually (doesn't matter for print, but keeps UI consistent)
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  invoicesTab?.classList.add("active");
-
-  // Hide other sections in-app (optional but clean)
-  ["trips","budget","dashboard","settings"].forEach(n=>{
-    const sec = $("tab-"+n);
-    if(sec) sec.classList.add("hide");
-  });
-
-  // Print
-  window.print();
-
-  // After print, restore previous hidden state
-  window.addEventListener("afterprint", ()=>{
-    if(invoicesSection && wasHidden) invoicesSection.classList.add("hide");
-    // Note: we don't try to restore which tab you were on because it gets messy.
-    // If you want that, I can add a tiny "remember current tab" variable.
-  }, { once:true });
-}
+    function printInvoice(){
+      // ensure preview exists so print shows something
+      const preview = $("invoicePreview");
+      if(preview && (preview.textContent||"").includes("No invoice selected")){
+        buildInvoicePreview();
+      }
+      window.print();
+    }
 
     // ========= Wire up events =========
     on("btn_calc","click", ()=> calcTrip());
@@ -1733,7 +1656,7 @@ function printInvoice(){
     on("b_buffer","input", ()=> calcBudget());
     on("b_withhold","input", ()=> calcBudget());
     on
-("b_withhold","input", ()=> calcBudget());
+    ("b_withhold","input", ()=> calcBudget());
     on("b_other_income","input", ()=> calcBudget());
     on("b_paychecks","change", ()=> calcBudget());
 
