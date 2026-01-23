@@ -375,8 +375,8 @@ window.addEventListener("DOMContentLoaded", () => {
   window.onerror = function (msg, src, line, col, err) {
   alert("JS ERROR: " + msg + " (line " + line + ")");
 };
+
 alert("DOM Loaded ✅");
-  alert("Script loaded ✅");
   const KEY = "tms_loads_v1";
   const COMPANY_KEY = "tms_company_v1";
 const CUSTOMER_KEY = "tms_customers_v1";
@@ -619,7 +619,8 @@ document.getElementById("calc_resetDefaultsBtn").addEventListener("click", () =>
   setCalcFormFromSettings();
   alert("Defaults restored.");
 });
-const calcBtn = document.getElementById("calc_calculateBtn");
+alert("About to wire Calculate ✅");
+  const calcBtn = document.getElementById("calc_calculateBtn");
 if (!calcBtn) {
   alert("ERROR: calc_calculateBtn not found in HTML");
 } else {
