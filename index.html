@@ -372,6 +372,10 @@
 
 <script>
 window.addEventListener("DOMContentLoaded", () => {
+  window.onerror = function (msg, src, line, col, err) {
+  alert("JS ERROR: " + msg + " (line " + line + ")");
+};
+alert("DOM Loaded ✅");
   alert("Script loaded ✅");
   const KEY = "tms_loads_v1";
   const COMPANY_KEY = "tms_company_v1";
