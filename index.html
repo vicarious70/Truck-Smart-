@@ -185,7 +185,83 @@
       border-top:1px solid #eee;
       margin-top:8px;
       padding-top:8px;
-    }
+    /* =========================
+   PRINT: invoice-only output
+========================= */
+@media print {
+  /* Page setup */
+  @page {
+    size: auto;
+    margin: 14mm;
+  }
+
+  html, body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  /* Hide everything by default */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Only show invoice preview area */
+  #invoicePreview, #invoicePreview * {
+    visibility: visible !important;
+  }
+
+  /* Position invoice at top-left and full width */
+  #invoicePreview {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+
+    /* Remove “app card” look so it prints clean */
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+
+    background: #fff !important;
+    color: #111 !important;
+    overflow: visible !important;
+  }
+
+  /* If invoicePaper styling is applied */
+  .invoicePaper{
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: #fff !important;
+    overflow: visible !important;
+  }
+
+  /* Don’t print the footer toast, etc */
+  #toast { display: none !important; }
+
+  /* Avoid ugly cut-offs */
+  .invTop, .invGrid2, .invBlock, .invTotal, .invTotalBox, table, tr, td, th {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Tables print nicer */
+  .invTable {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  .invTable thead { display: table-header-group; }
+  .invTable tfoot { display: table-footer-group; }
+
+  /* Keep colors (some browsers fade them) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
   </style>
 </head>
 <body>
@@ -1341,42 +1417,149 @@ document.addEventListener("DOMContentLoaded", () => {
   if(!t) return toast("Trip not found.");
 
   const invDate = $("inv_date").value || isoNowDate();
-  const invNum  = $("inv_number").value || ("INV-" + t.id.slice(0,8).toUpperCase());
+  const invNum  = ($("inv_number").value || "").trim() || ("INV-" + t.id.slice(0,8).toUpperCase());
+
+  const safe = (v)=> escapeHtml(v ?? "");
+  const n = (v)=> money(v);
+  const m = (v)=> fmtMoney(n(v));
+  const num = (v)=> fmtNum(n(v));
+
+  // Derived helpers (fallbacks if older saved trips lack some fields)
+  const loadedMiles   = n(t.loadedMiles);
+  const deadheadMiles = n(t.deadheadMiles);
+  const totalMiles    = n(t.totalMiles) || (loadedMiles + deadheadMiles);
+  const mpg           = n(t.totals?.mpg);
+
+  const revenue       = n(t.revenue);
+  const fuelGallons   = n(t.fuelGallons);
+  const fuelCPG       = n(t.fuelCostPerGallon);
+  const fuelCost      = n(t.fuelCost) || (fuelGallons * fuelCPG);
+
+  const tolls         = n(t.tolls);
+  const other         = n(t.other);
+
+  const resTires  = n(t.reserves?.tires);
+  const resMaint  = n(t.reserves?.maint);
+  const resPlates = n(t.reserves?.plates);
+  const resIFTA   = n(t.reserves?.ifta);
+  const resTax    = n(t.reserves?.tax);
+
+  const totalExpenses = n(t.totals?.totalExpenses) || (fuelCost + tolls + other + resTires + resMaint + resPlates + resIFTA + resTax);
+  const net           = n(t.totals?.net) || (revenue - totalExpenses);
 
   $("invoicePreview").innerHTML = `
-    <h3 class="invH">Invoice</h3>
-    <div class="invMuted">Invoice #: ${escapeHtml(invNum)}<br>Date: ${escapeHtml(invDate)}</div>
+    <div class="invTop">
+      <div>
+        <h3 class="invH">Invoice</h3>
+        <div class="invMuted">
+          <b>Invoice #:</b> ${safe(invNum)}<br>
+          <b>Invoice Date:</b> ${safe(invDate)}<br>
+          <b>Trip Date:</b> ${safe(t.date || "")}
+        </div>
+      </div>
+      <div class="invMuted">
+        <b>Load / Ref #:</b> ${safe(t.ref || "-")}<br>
+        <b>Truck:</b> ${safe(t.truck || "-")} &nbsp; <b>Trailer:</b> ${safe(t.trailer || "-")}<br>
+        <b>Tire Size:</b> ${safe(t.tireSize || "-")}
+      </div>
+    </div>
 
-    <div class="invBlock">
-      <b>Company:</b> ${escapeHtml(t.company)}<br>
-      <b>Broker / Customer:</b> ${escapeHtml(t.customer || "-")}<br>
-      <b>Shipper:</b> ${escapeHtml(t.shipper || "-")}
+    <div class="invGrid2">
+      <div class="invBlock">
+        <div class="invMuted"><b>Carrier / Company</b></div>
+        ${safe(t.company || "-")}
+      </div>
+
+      <div class="invBlock">
+        <div class="invMuted"><b>Broker / Customer</b></div>
+        ${safe(t.customer || "-")}
+      </div>
+
+      <div class="invBlock">
+        <div class="invMuted"><b>Shipper</b></div>
+        ${safe(t.shipper || "-")}
+      </div>
+
+      <div class="invBlock">
+        <div class="invMuted"><b>Consignee</b></div>
+        ${safe(t.consignee || "-")}
+      </div>
+    </div>
+
+    <div class="invGrid2">
+      <div class="invBlock">
+        <div class="invMuted"><b>Pickup</b></div>
+        <b>${safe(t.pickup || "-")}</b><br>
+        ${safe(t.pickupAddr || "-")}
+      </div>
+
+      <div class="invBlock">
+        <div class="invMuted"><b>Delivery</b></div>
+        <b>${safe(t.delivery || "-")}</b><br>
+        ${safe(t.deliveryAddr || "-")}
+      </div>
     </div>
 
     <div class="invBlock">
-      <b>Pickup:</b><br>
-      ${escapeHtml(t.pickupAddr || t.pickup || "-")}
+      <div class="invMuted"><b>Miles</b></div>
+      <table class="invTable">
+        <tr>
+          <th>Loaded</th>
+          <th>Deadhead</th>
+          <th>Total</th>
+          <th class="invRight">MPG (est)</th>
+        </tr>
+        <tr>
+          <td class="mono">${num(loadedMiles)}</td>
+          <td class="mono">${num(deadheadMiles)}</td>
+          <td class="mono"><b>${num(totalMiles)}</b></td>
+          <td class="invRight mono">${(mpg || 0).toFixed(2)}</td>
+        </tr>
+      </table>
     </div>
 
     <div class="invBlock">
-      <b>Delivery:</b><br>
-      ${escapeHtml(t.deliveryAddr || t.delivery || "-")}
+      <div class="invMuted"><b>Charges</b></div>
+      <table class="invTable">
+        <tr><th>Description</th><th class="invRight">Amount</th></tr>
+        <tr><td>Linehaul / Freight Charges</td><td class="invRight mono">${m(revenue)}</td></tr>
+      </table>
     </div>
 
-    <table class="invTable">
-      <tr><th>Description</th><th class="invRight">Amount</th></tr>
-      <tr><td>Linehaul / Freight Charges</td><td class="invRight">${fmtMoney(t.revenue)}</td></tr>
-    </table>
+    <div class="invBlock">
+      <div class="invMuted"><b>Trip Costs (for your records)</b></div>
+      <table class="invTable">
+        <tr><th>Item</th><th class="invRight">Amount</th></tr>
+        <tr><td>Fuel (${fuelGallons.toFixed(2)} gal @ $${fuelCPG.toFixed(3)}/gal)</td><td class="invRight mono">${m(fuelCost)}</td></tr>
+        <tr><td>Tolls</td><td class="invRight mono">${m(tolls)}</td></tr>
+        <tr><td>Other Trip Expenses</td><td class="invRight mono">${m(other)}</td></tr>
+        <tr><td>Tire Reserve</td><td class="invRight mono">${m(resTires)}</td></tr>
+        <tr><td>Maintenance Reserve</td><td class="invRight mono">${m(resMaint)}</td></tr>
+        <tr><td>Plates Reserve</td><td class="invRight mono">${m(resPlates)}</td></tr>
+        <tr><td>IFTA Reserve (est)</td><td class="invRight mono">${m(resIFTA)}</td></tr>
+        <tr><td>Tax Reserve (est)</td><td class="invRight mono">${m(resTax)}</td></tr>
+        <tr><th>Total Trip Expenses</th><th class="invRight mono">${m(totalExpenses)}</th></tr>
+        <tr><th>Trip Net (Revenue - Expenses)</th><th class="invRight mono">${m(net)}</th></tr>
+      </table>
+      <div class="invMuted" style="margin-top:8px">
+        Note: Costs/reserves are shown for your records. Customer-facing invoices usually show charges only.
+      </div>
+    </div>
 
     <div class="invTotal">
       <div class="invTotalBox">
-        <div class="invLine"><span>Subtotal</span><span>${fmtMoney(t.revenue)}</span></div>
-        <div class="invLine invBig"><span>Total Due</span><span>${fmtMoney(t.revenue)}</span></div>
+        <div class="invLine"><span>Subtotal</span><span class="mono">${m(revenue)}</span></div>
+        <div class="invLine invBig"><span>Total Due</span><span class="mono">${m(revenue)}</span></div>
       </div>
+    </div>
+
+    <div class="invBlock">
+      <div class="invMuted"><b>Notes</b></div>
+      ${safe(t.notes || "—")}
     </div>
   `;
 
-  toast("Invoice preview built 🧾");
+  toast("Invoice built 🧾");
 });
 
 on("btn_inv_print","click", ()=>{
