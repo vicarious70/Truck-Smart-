@@ -216,6 +216,7 @@ alert("TEST ALERT");
 
       <div class="actions" style="margin-top:10px;">
         <button id="calc_calculateBtn" type="button">Calculate</button>
+        <div id="calc_debug" style="margin-top:8px; font-size:14px; font-weight:600;"></div>
         <button id="calc_saveEvalBtn" type="button">Save Evaluation</button>
       </div>
 
@@ -461,6 +462,30 @@ let customers = loadCustomers();
   let selectedId = null;
 
   const els = {
+    function calcDebug(msg) {
+  const el = document.getElementById("calc_debug");
+  if (el) el.textContent = msg;
+}
+
+calcDebug("Calculator script loaded ✅");
+
+const calcBtn = document.getElementById("calc_calculateBtn");
+if (!calcBtn) {
+  calcDebug("ERROR: Calculate button not found (calc_calculateBtn).");
+} else {
+  calcDebug("Calculate button found ✅ Tap Calculate.");
+  calcBtn.addEventListener("click", () => {
+    try {
+      calcDebug("Clicked ✅ Calculating...");
+      readCalcSettingsFromForm();
+      const r = calcCompute();
+      calcRender(r);
+      calcDebug("Done ✅ Results updated.");
+    } catch (e) {
+      calcDebug("JS ERROR: " + (e && e.message ? e.message : String(e)));
+    }
+  });
+}
     loadsTbody: document.getElementById("loadsTbody"),
     invoiceCard: document.getElementById("invoiceCard"),
     invMeta: document.getElementById("invMeta"),
