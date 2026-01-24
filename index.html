@@ -754,6 +754,17 @@
       </div>
       <div class="row three">
         <label>IFTA Reserve ($ per mile) (estimate)
+         <div class="row three">
+  <label>Minimum Profit Goal ($/mi)
+    <input id="r_min_profit" type="number" min="0" step="0.01" />
+  </label>
+  <label>Target Profit Goal ($/mi)
+    <input id="r_target_profit" type="number" min="0" step="0.01" />
+  </label>
+  <label>Dispatch + Factoring (% of revenue) (optional)
+    <input id="r_fees_pct" type="number" min="0" step="0.1" />
+  </label>
+</div>
           <input id="r_ifta" type="number" min="0" step="0.001" />
         </label>
         <label>Tax Reserve (% of revenue)
@@ -763,7 +774,19 @@
           <input id="r_mpg" type="number" min="1" step="0.1" />
         </label>
       </div>
+<div class="row three">
+  <label>Minimum Profit ($ per mile)
+    <input id="r_min_profit" type="number" min="0" step="0.01" />
+  </label>
 
+  <label>Target Profit ($ per mile)
+    <input id="r_target_profit" type="number" min="0" step="0.01" />
+  </label>
+
+  <label>Fees (% of revenue)
+    <input id="r_fees_pct" type="number" min="0" step="0.1" />
+  </label>
+</div>
       <div class="btnRow">
         <button type="button" class="good" id="btn_save_rates">💾 Save Rates</button>
       </div>
@@ -845,13 +868,18 @@ document.addEventListener("DOMContentLoaded", () => {
         consignees: ["Select…","Walmart DC","Amazon FC","Costco DC"]
       },
       rates: {
-        tiresPerMile: 0.05,
-        maintPerMile: 0.12,
-        platesPerMile: 0.02,
-        iftaPerMile: 0.03,
-        taxPctRevenue: 22,
-        targetMPG: 6.5
-      },
+  tiresPerMile: 0.05,
+  maintPerMile: 0.12,
+  platesPerMile: 0.02,
+  iftaPerMile: 0.03,
+  taxPctRevenue: 22,
+  targetMPG: 6.5,
+
+  // NEW: profit & fee goals
+  minProfitPerMile: 0.40,
+  targetProfitPerMile: 0.70,
+  feesPctRevenue: 0
+},
       goals: { bizMonthly: 0, personalMonthly: 0 },
       trips: [],
       budget: {}
@@ -961,6 +989,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const miles = loaded + deadhead;
 
       const revenue = money(parseFloat($("t_revenue")?.value));
+      const fees = revenue * ((state.rates.feesPctRevenue || 0) / 100);
       const gal = money(parseFloat($("t_fuel_gal")?.value));
       const cpg = money(parseFloat($("t_fuel_cpg")?.value));
       const fuelCost = gal * cpg;
@@ -984,7 +1013,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if(gal>0 && miles>0) mpg = miles / gal;
       else if(miles>0) mpg = state.rates.targetMPG;
 
-      const totalExpenses = fuelCost + tolls + other + resTires + resMaint + resPlates + resIFTA + resTax;
+      const totalExpenses = fees + fuelCost + tolls + other + resTires + resMaint + resPlates + resIFTA + resTax;
       const net = revenue - totalExpenses;
 
       return {
@@ -1005,6 +1034,7 @@ document.addEventListener("DOMContentLoaded", () => {
         deadheadMiles: deadhead,
         totalMiles: miles,
         revenue,
+        fees
         fuelGallons: gal,
         fuelCostPerGallon: cpg,
         fuelCost,
@@ -1473,6 +1503,9 @@ document.addEventListener("DOMContentLoaded", () => {
       $("r_ifta").value  = state.rates.iftaPerMile;
       $("r_tax_pct").value = state.rates.taxPctRevenue;
       $("r_mpg").value   = state.rates.targetMPG;
+    $("r_min_profit").value   = state.rates.minProfitPerMile;
+$("r_target_profit").value= state.rates.targetProfitPerMile;
+$("r_fees_pct").value     = state.rates.feesPctRevenue;
     }
 
     function saveLists(){
@@ -1524,6 +1557,9 @@ document.addEventListener("DOMContentLoaded", () => {
       state.rates.taxPctRevenue= money(parseFloat($("r_tax_pct")?.value));
       state.rates.targetMPG    = money(parseFloat($("r_mpg")?.value)) || defaults.rates.targetMPG;
       saveState();
+     state.rates.minProfitPerMile    = money(parseFloat($("r_min_profit")?.value));
+state.rates.targetProfitPerMile = money(parseFloat($("r_target_profit")?.value));
+state.rates.feesPctRevenue      = money(parseFloat($("r_fees_pct")?.value));
       toast("Saved rates");
     }
 
