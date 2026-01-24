@@ -465,7 +465,32 @@
         <div class="kpi"><div class="label">MPG (est)</div><div class="val mono" id="k_mpg">0.00</div></div>
         <div class="kpi"><div class="label">Trip Net</div><div class="val mono" id="k_net">$0.00</div></div>
       </div>
+<div class="hr"></div>
 
+<div class="kpis">
+  <div class="kpi">
+    <div class="label">Loaded RPM (broker)</div>
+    <div class="val mono" id="k_loaded_rpm">$0.00</div>
+  </div>
+  <div class="kpi">
+    <div class="label">All-in RPM (true)</div>
+    <div class="val mono" id="k_allin_rpm">$0.00</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Net per Mile</div>
+    <div class="val mono" id="k_net_per_mile">$0.00</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Minimum Rate to Accept</div>
+    <div class="val mono" id="k_min_rate">$0.00</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Target Rate</div>
+    <div class="val mono" id="k_target_rate">$0.00</div>
+  </div>
+</div>
+
+<div class="small" id="k_verdict"></div>
       <div class="hr"></div>
       <div class="small">
         ⚠️ IFTA here is an <i>estimate</i> unless you track miles + gallons by state.
@@ -993,16 +1018,53 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateTripKPIs(t){
-      if($("k_total_miles")) $("k_total_miles").textContent = fmtNum(t.totalMiles);
-      if($("k_fuel_cost")) $("k_fuel_cost").textContent = fmtMoney(t.fuelCost);
-      if($("k_mpg")) $("k_mpg").textContent = (t.totals.mpg||0).toFixed(2);
-      const netEl = $("k_net");
-      if(netEl){
-        netEl.textContent = fmtMoney(t.totals.net);
-        netEl.classList.remove("good","bad","warn");
-        netEl.classList.add(t.totals.net>=0 ? "good" : "bad");
-      }
-    }
+  if($("k_total_miles")) $("k_total_miles").textContent = fmtNum(t.totalMiles);
+  if($("k_fuel_cost")) $("k_fuel_cost").textContent = fmtMoney(t.fuelCost);
+  if($("k_mpg")) $("k_mpg").textContent = (t.totals.mpg||0).toFixed(2);
+
+  const netEl = $("k_net");
+  if(netEl){
+    netEl.textContent = fmtMoney(t.totals.net);
+    netEl.classList.remove("good","bad","warn");
+    netEl.classList.add(t.totals.net>=0 ? "good" : "bad");
+  }
+
+  // ---- Rate & Profit add-ons ----
+  const loadedMiles = money(t.loadedMiles);
+  const deadheadMiles = money(t.deadheadMiles);
+  const totalMiles = money(t.totalMiles);
+  const revenue = money(t.revenue);
+
+  const loadedRpm = loadedMiles > 0 ? revenue / loadedMiles : 0;
+  const allInRpm  = totalMiles > 0 ? revenue / totalMiles : 0;
+
+  const netPerMile = totalMiles > 0 ? money(t.totals.net) / totalMiles : 0;
+
+  // Estimated cost per mile (excluding profit)
+  const costPerMile = totalMiles > 0 ? money(t.totals.totalExpenses) / totalMiles : 0;
+
+  // Profit goals (we can move these into Settings later)
+  const minProfitPerMile = 0.40;
+  const targetProfitPerMile = 0.70;
+
+  const minRate = totalMiles * (costPerMile + minProfitPerMile);
+  const targetRate = totalMiles * (costPerMile + targetProfitPerMile);
+
+  if ($("k_loaded_rpm")) $("k_loaded_rpm").textContent = fmtMoney(loadedRpm);
+  if ($("k_allin_rpm")) $("k_allin_rpm").textContent = fmtMoney(allInRpm);
+  if ($("k_net_per_mile")) $("k_net_per_mile").textContent = fmtMoney(netPerMile);
+  if ($("k_min_rate")) $("k_min_rate").textContent = fmtMoney(minRate);
+  if ($("k_target_rate")) $("k_target_rate").textContent = fmtMoney(targetRate);
+
+  const verdictEl = $("k_verdict");
+  if (verdictEl) {
+    let verdict = "—";
+    if (netPerMile >= targetProfitPerMile) verdict = "✅ TAKE IT (meets target profit/mi)";
+    else if (netPerMile >= minProfitPerMile) verdict = "⚠️ BORDERLINE (meets minimum profit/mi)";
+    else verdict = "❌ PASS (below minimum profit/mi)";
+    verdictEl.textContent = verdict;
+  }
+}
 
     function renderTrips(){
       const q = (($("searchTrips")?.value)||"").toLowerCase().trim();
