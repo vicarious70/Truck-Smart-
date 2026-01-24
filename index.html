@@ -375,13 +375,18 @@
       </div>
 
       <div class="row two">
-        <label>Pickup Address
-          <input id="t_pickup_addr" placeholder="Street, city, state" />
-        </label>
-        <label>Delivery Address
-          <input id="t_delivery_addr" placeholder="Street, city, state" />
-        </label>
-      </div>
+  <label>Pickup Address
+    <select id="t_pickup_addr_select"></select>
+    <input id="t_pickup_addr" placeholder="Type address (auto-saves for this shipper)" />
+    <div class="small">Pick a saved address above, or type a new one (it will save).</div>
+  </label>
+
+  <label>Delivery Address
+    <select id="t_delivery_addr_select"></select>
+    <input id="t_delivery_addr" placeholder="Type address (auto-saves for this consignee)" />
+    <div class="small">Pick a saved address above, or type a new one (it will save).</div>
+  </label>
+</div>
 
       <div class="row two">
         <label>Broker / Customer
