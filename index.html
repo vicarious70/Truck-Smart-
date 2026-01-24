@@ -250,14 +250,38 @@
 
       /* Don’t clip content */
       * { overflow: visible !important; }
-
-      /* Keep colors (Chrome sometimes fades them) */
+/* Keep colors (Chrome sometimes fades them) */
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+      }
+    } /* ✅ closes @media print */
 
-  /* ===== Loads Dropdown Styles ===== */
-  .loads-dropdown{
+/* ===== Loads Dropdown Styles ===== */
+.loads-dropdown{
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-top: 10px;
+}
+.loads-summary{
+  cursor: pointer;
+  padding: 12px 14px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--chip);
+  user-select: none;
+  list-style: none;
+}
+.loads-summary::-webkit-details-marker{ display:none; }
+.loads-content{
+  padding: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+      
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -1013,7 +1037,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <div>
             <div class="itemTitle"><b>${escapeHtml(t.company)}</b> · ${escapeHtml(t.pickup)} → ${escapeHtml(t.delivery)}</div>
             <div class="itemMeta mono">${escapeHtml(t.date)}
-            <div class="itemMeta mono">${escapeHtml(t.date)}
               · Truck ${escapeHtml(t.truck)} / Trailer ${escapeHtml(t.trailer)}
               ${t.ref ? " · Ref " + escapeHtml(t.ref) : ""}
             </div>
@@ -1655,8 +1678,6 @@ document.addEventListener("DOMContentLoaded", () => {
     on("b_month","change", ()=> renderBudget());
     on("b_buffer","input", ()=> calcBudget());
     on("b_withhold","input", ()=> calcBudget());
-    on
-    ("b_withhold","input", ()=> calcBudget());
     on("b_other_income","input", ()=> calcBudget());
     on("b_paychecks","change", ()=> calcBudget());
 
