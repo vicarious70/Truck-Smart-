@@ -319,7 +319,7 @@
       <h1>Trucking Made Simple</h1>
       <div class="sub">Offline. Stores on your phone. Built because spreadsheets hate joy.</div>
     </div>
-    <div class="pill" id="statusPill">✅ Ready</div>
+    <div class="pill" id="statusPill">⏳ Loading…</div>
   </div>
   <div class="tabs">
     <div class="tab active" data-tab="trips">🚛 Trips</div>
@@ -831,6 +831,7 @@ window.addEventListener("unhandledrejection", (e)=>{
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  setStatus("✅ JS running");
   try {
     if (typeof structuredClone !== "function") {
       window.structuredClone = (obj) => JSON.parse(JSON.stringify(obj));
