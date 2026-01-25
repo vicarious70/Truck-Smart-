@@ -1834,7 +1834,26 @@ state.rates.feesPctRevenue      = money(parseFloat($("r_fees_pct")?.value));
       // optional: auto-build preview on selection (comment out if you hate convenience)
       // buildInvoicePreview();
     });
+// Shipper / Consignee memory wiring
+on("t_shipper_name","input", ()=>{
+  const v = $("t_shipper_name")?.value || "";
+  if(v.trim().length >= 3) memToDatalist(shipperMem, $("shipperMemory"), v);
+});
+on("t_shipper_name","change", ()=> tryAutofill(shipperMem, $("t_shipper_name"), $("t_shipper_addr")));
+on("t_shipper_addr","blur", ()=>{
+  saveEntry(shipperMem, SHIPPER_MEM_KEY, $("t_shipper_name"), $("t_shipper_addr"));
+  memToDatalist(shipperMem, $("shipperMemory"), $("t_shipper_name")?.value || "");
+});
 
+on("t_consignee_name","input", ()=>{
+  const v = $("t_consignee_name")?.value || "";
+  if(v.trim().length >= 3) memToDatalist(consigneeMem, $("consigneeMemory"), v);
+});
+on("t_consignee_name","change", ()=> tryAutofill(consigneeMem, $("t_consignee_name"), $("t_consignee_addr")));
+on("t_consignee_addr","blur", ()=>{
+  saveEntry(consigneeMem, CONSIGNEE_MEM_KEY, $("t_consignee_name"), $("t_consignee_addr"));
+  memToDatalist(consigneeMem, $("consigneeMemory"), $("t_consignee_name")?.value || "");
+});
     // ========= Init =========
     loadTripDropdowns();
     loadSettingsUI();
