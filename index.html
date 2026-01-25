@@ -838,7 +838,7 @@
 
 <script type="text/javascript">
   console.log("SCRIPT START");
-
+document.getElementById("statusPill").textContent = "✅ Script loaded (top)";
 function setStatus(text){
   const pill = document.getElementById("statusPill");
   if(pill) pill.textContent = text;
