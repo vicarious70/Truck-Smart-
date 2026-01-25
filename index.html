@@ -250,38 +250,14 @@
 
       /* Don’t clip content */
       * { overflow: visible !important; }
-/* Keep colors (Chrome sometimes fades them) */
+
+      /* Keep colors (Chrome sometimes fades them) */
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
-      }
-    } /* ✅ closes @media print */
 
-/* ===== Loads Dropdown Styles ===== */
-.loads-dropdown{
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  margin-top: 10px;
-}
-.loads-summary{
-  cursor: pointer;
-  padding: 12px 14px;
-  font-weight: 700;
-  color: var(--text);
-  background: var(--chip);
-  user-select: none;
-  list-style: none;
-}
-.loads-summary::-webkit-details-marker{ display:none; }
-.loads-content{
-  padding: 10px;
-  max-height: 420px;
-  overflow-y: auto;
-}
-      
+  /* ===== Loads Dropdown Styles ===== */
+  .loads-dropdown{
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -319,7 +295,7 @@
       <h1>Trucking Made Simple</h1>
       <div class="sub">Offline. Stores on your phone. Built because spreadsheets hate joy.</div>
     </div>
-    <div class="pill" id="statusPill">⏳ Loading…</div>
+    <div class="pill" id="statusPill">✅ Ready</div>
   </div>
   <div class="tabs">
     <div class="tab active" data-tab="trips">🚛 Trips</div>
@@ -375,18 +351,13 @@
       </div>
 
       <div class="row two">
-  <label>Pickup Address
-    <select id="t_pickup_addr_select"></select>
-    <input id="t_pickup_addr" placeholder="Type address (auto-saves for this shipper)" />
-    <div class="small">Pick a saved address above, or type a new one (it will save).</div>
-  </label>
-
-  <label>Delivery Address
-    <select id="t_delivery_addr_select"></select>
-    <input id="t_delivery_addr" placeholder="Type address (auto-saves for this consignee)" />
-    <div class="small">Pick a saved address above, or type a new one (it will save).</div>
-  </label>
-</div>
+        <label>Pickup Address
+          <input id="t_pickup_addr" placeholder="Street, city, state" />
+        </label>
+        <label>Delivery Address
+          <input id="t_delivery_addr" placeholder="Street, city, state" />
+        </label>
+      </div>
 
       <div class="row two">
         <label>Broker / Customer
@@ -470,32 +441,7 @@
         <div class="kpi"><div class="label">MPG (est)</div><div class="val mono" id="k_mpg">0.00</div></div>
         <div class="kpi"><div class="label">Trip Net</div><div class="val mono" id="k_net">$0.00</div></div>
       </div>
-<div class="hr"></div>
 
-<div class="kpis">
-  <div class="kpi">
-    <div class="label">Loaded RPM (broker)</div>
-    <div class="val mono" id="k_loaded_rpm">$0.00</div>
-  </div>
-  <div class="kpi">
-    <div class="label">All-in RPM (true)</div>
-    <div class="val mono" id="k_allin_rpm">$0.00</div>
-  </div>
-  <div class="kpi">
-    <div class="label">Net per Mile</div>
-    <div class="val mono" id="k_net_per_mile">$0.00</div>
-  </div>
-  <div class="kpi">
-    <div class="label">Minimum Rate to Accept</div>
-    <div class="val mono" id="k_min_rate">$0.00</div>
-  </div>
-  <div class="kpi">
-    <div class="label">Target Rate</div>
-    <div class="val mono" id="k_target_rate">$0.00</div>
-  </div>
-</div>
-
-<div class="small" id="k_verdict"></div>
       <div class="hr"></div>
       <div class="small">
         ⚠️ IFTA here is an <i>estimate</i> unless you track miles + gallons by state.
@@ -699,8 +645,6 @@
     <div class="card">
       <h2>Dropdown Lists</h2>
       <div class="small">Edit lists, then hit Save.</div>
-<div class="hr"></div>
-
 
       <div class="row two">
         <label>Companies (one per line)
@@ -743,22 +687,7 @@
         <button type="button" class="bad" id="btn_reset_lists">↩️ Reset Defaults</button>
       </div>
     </div>
-<div class="hr"></div>
 
-    <h2>Address Books</h2>
-    <div class="small">Format: <b>Name | Street, City, State ZIP</b> (one per line)</div>
-
-    <div class="row two">
-      <label>Shipper Addresses (one per line)
-        <textarea id="s_shipper_addrs"
-          placeholder="Amazon | 123 Main St, Dallas, TX 75201&#10;Walmart DC | 456 Warehouse Rd, Atlanta, GA 30303"></textarea>
-      </label>
-
-      <label>Consignee Addresses (one per line)
-        <textarea id="s_consignee_addrs"
-          placeholder="Amazon FC | 10 Fulfillment Way, Chicago, IL 60601&#10;Costco DC | 99 Distribution Dr, Newark, NJ 07102"></textarea>
-      </label>
-    </div>
     <div class="card">
       <h2>Default Reserves & Rates</h2>
       <div class="small">These feed auto-calcs for every trip. You can override per trip.</div>
@@ -776,17 +705,6 @@
       </div>
       <div class="row three">
         <label>IFTA Reserve ($ per mile) (estimate)
-         <div class="row three">
-  <label>Minimum Profit Goal ($/mi)
-    <input id="r_min_profit" type="number" min="0" step="0.01" />
-  </label>
-  <label>Target Profit Goal ($/mi)
-    <input id="r_target_profit" type="number" min="0" step="0.01" />
-  </label>
-  <label>Dispatch + Factoring (% of revenue) (optional)
-    <input id="r_fees_pct" type="number" min="0" step="0.1" />
-  </label>
-</div>
           <input id="r_ifta" type="number" min="0" step="0.001" />
         </label>
         <label>Tax Reserve (% of revenue)
@@ -796,19 +714,7 @@
           <input id="r_mpg" type="number" min="1" step="0.1" />
         </label>
       </div>
-<div class="row three">
-  <label>Minimum Profit ($ per mile)
-    <input id="r_min_profit" type="number" min="0" step="0.01" />
-  </label>
 
-  <label>Target Profit ($ per mile)
-    <input id="r_target_profit" type="number" min="0" step="0.01" />
-  </label>
-
-  <label>Fees (% of revenue)
-    <input id="r_fees_pct" type="number" min="0" step="0.1" />
-  </label>
-</div>
       <div class="btnRow">
         <button type="button" class="good" id="btn_save_rates">💾 Save Rates</button>
       </div>
@@ -838,7 +744,7 @@
 
 <script type="text/javascript">
   console.log("SCRIPT START");
-document.getElementById("statusPill").textContent = "✅ Script loaded (top)";
+
 function setStatus(text){
   const pill = document.getElementById("statusPill");
   if(pill) pill.textContent = text;
@@ -853,7 +759,6 @@ window.addEventListener("unhandledrejection", (e)=>{
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  setStatus("✅ JS running");
   try {
     if (typeof structuredClone !== "function") {
       window.structuredClone = (obj) => JSON.parse(JSON.stringify(obj));
@@ -891,18 +796,13 @@ document.addEventListener("DOMContentLoaded", () => {
         consignees: ["Select…","Walmart DC","Amazon FC","Costco DC"]
       },
       rates: {
-  tiresPerMile: 0.05,
-  maintPerMile: 0.12,
-  platesPerMile: 0.02,
-  iftaPerMile: 0.03,
-  taxPctRevenue: 22,
-  targetMPG: 6.5,
-
-  // NEW: profit & fee goals
-  minProfitPerMile: 0.40,
-  targetProfitPerMile: 0.70,
-  feesPctRevenue: 0
-},
+        tiresPerMile: 0.05,
+        maintPerMile: 0.12,
+        platesPerMile: 0.02,
+        iftaPerMile: 0.03,
+        taxPctRevenue: 22,
+        targetMPG: 6.5
+      },
       goals: { bizMonthly: 0, personalMonthly: 0 },
       trips: [],
       budget: {}
@@ -958,17 +858,7 @@ document.addEventListener("DOMContentLoaded", () => {
         selectEl.appendChild(opt);
       });
     }
-<label>Pickup Address
-    <select id="t_pickup_addr_select"></select>
-    <input id="t_pickup_addr" placeholder="Type address (auto-saves for this shipper)" />
-    <div class="small">Pick a saved address above, or type a new one (it will save).</div>
-  </label>
 
-  <label>Delivery Address
-    <select id="t_delivery_addr_select"></select>
-    <input id="t_delivery_addr" placeholder="Type address (auto-saves for this consignee)" />
-    <div class="small">Pick a saved address above, or type a new one (it will save).</div>
-  </label>
     function todayISO(){
       const d = new Date();
       const off = d.getTimezoneOffset();
@@ -1022,7 +912,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const miles = loaded + deadhead;
 
       const revenue = money(parseFloat($("t_revenue")?.value));
-      const fees = revenue * ((state.rates.feesPctRevenue || 0) / 100);
       const gal = money(parseFloat($("t_fuel_gal")?.value));
       const cpg = money(parseFloat($("t_fuel_cpg")?.value));
       const fuelCost = gal * cpg;
@@ -1046,7 +935,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if(gal>0 && miles>0) mpg = miles / gal;
       else if(miles>0) mpg = state.rates.targetMPG;
 
-      const totalExpenses = fees + fuelCost + tolls + other + resTires + resMaint + resPlates + resIFTA + resTax;
+      const totalExpenses = fuelCost + tolls + other + resTires + resMaint + resPlates + resIFTA + resTax;
       const net = revenue - totalExpenses;
 
       return {
@@ -1067,7 +956,6 @@ document.addEventListener("DOMContentLoaded", () => {
         deadheadMiles: deadhead,
         totalMiles: miles,
         revenue,
-        fees,
         fuelGallons: gal,
         fuelCostPerGallon: cpg,
         fuelCost,
@@ -1081,53 +969,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateTripKPIs(t){
-  if($("k_total_miles")) $("k_total_miles").textContent = fmtNum(t.totalMiles);
-  if($("k_fuel_cost")) $("k_fuel_cost").textContent = fmtMoney(t.fuelCost);
-  if($("k_mpg")) $("k_mpg").textContent = (t.totals.mpg||0).toFixed(2);
-
-  const netEl = $("k_net");
-  if(netEl){
-    netEl.textContent = fmtMoney(t.totals.net);
-    netEl.classList.remove("good","bad","warn");
-    netEl.classList.add(t.totals.net>=0 ? "good" : "bad");
-  }
-
-  // ---- Rate & Profit add-ons ----
-  const loadedMiles = money(t.loadedMiles);
-  const deadheadMiles = money(t.deadheadMiles);
-  const totalMiles = money(t.totalMiles);
-  const revenue = money(t.revenue);
-
-  const loadedRpm = loadedMiles > 0 ? revenue / loadedMiles : 0;
-  const allInRpm  = totalMiles > 0 ? revenue / totalMiles : 0;
-
-  const netPerMile = totalMiles > 0 ? money(t.totals.net) / totalMiles : 0;
-
-  // Estimated cost per mile (excluding profit)
-  const costPerMile = totalMiles > 0 ? money(t.totals.totalExpenses) / totalMiles : 0;
-
-  // Profit goals (we can move these into Settings later)
-  const minProfitPerMile = 0.40;
-  const targetProfitPerMile = 0.70;
-
-  const minRate = totalMiles * (costPerMile + minProfitPerMile);
-  const targetRate = totalMiles * (costPerMile + targetProfitPerMile);
-
-  if ($("k_loaded_rpm")) $("k_loaded_rpm").textContent = fmtMoney(loadedRpm);
-  if ($("k_allin_rpm")) $("k_allin_rpm").textContent = fmtMoney(allInRpm);
-  if ($("k_net_per_mile")) $("k_net_per_mile").textContent = fmtMoney(netPerMile);
-  if ($("k_min_rate")) $("k_min_rate").textContent = fmtMoney(minRate);
-  if ($("k_target_rate")) $("k_target_rate").textContent = fmtMoney(targetRate);
-
-  const verdictEl = $("k_verdict");
-  if (verdictEl) {
-    let verdict = "—";
-    if (netPerMile >= targetProfitPerMile) verdict = "✅ TAKE IT (meets target profit/mi)";
-    else if (netPerMile >= minProfitPerMile) verdict = "⚠️ BORDERLINE (meets minimum profit/mi)";
-    else verdict = "❌ PASS (below minimum profit/mi)";
-    verdictEl.textContent = verdict;
-  }
-}
+      if($("k_total_miles")) $("k_total_miles").textContent = fmtNum(t.totalMiles);
+      if($("k_fuel_cost")) $("k_fuel_cost").textContent = fmtMoney(t.fuelCost);
+      if($("k_mpg")) $("k_mpg").textContent = (t.totals.mpg||0).toFixed(2);
+      const netEl = $("k_net");
+      if(netEl){
+        netEl.textContent = fmtMoney(t.totals.net);
+        netEl.classList.remove("good","bad","warn");
+        netEl.classList.add(t.totals.net>=0 ? "good" : "bad");
+      }
+    }
 
     function renderTrips(){
       const q = (($("searchTrips")?.value)||"").toLowerCase().trim();
@@ -1161,6 +1012,7 @@ document.addEventListener("DOMContentLoaded", () => {
         top.innerHTML = `
           <div>
             <div class="itemTitle"><b>${escapeHtml(t.company)}</b> · ${escapeHtml(t.pickup)} → ${escapeHtml(t.delivery)}</div>
+            <div class="itemMeta mono">${escapeHtml(t.date)}
             <div class="itemMeta mono">${escapeHtml(t.date)}
               · Truck ${escapeHtml(t.truck)} / Trailer ${escapeHtml(t.trailer)}
               ${t.ref ? " · Ref " + escapeHtml(t.ref) : ""}
@@ -1536,9 +1388,6 @@ document.addEventListener("DOMContentLoaded", () => {
       $("r_ifta").value  = state.rates.iftaPerMile;
       $("r_tax_pct").value = state.rates.taxPctRevenue;
       $("r_mpg").value   = state.rates.targetMPG;
-    $("r_min_profit").value   = state.rates.minProfitPerMile;
-$("r_target_profit").value= state.rates.targetProfitPerMile;
-$("r_fees_pct").value     = state.rates.feesPctRevenue;
     }
 
     function saveLists(){
@@ -1590,9 +1439,6 @@ $("r_fees_pct").value     = state.rates.feesPctRevenue;
       state.rates.taxPctRevenue= money(parseFloat($("r_tax_pct")?.value));
       state.rates.targetMPG    = money(parseFloat($("r_mpg")?.value)) || defaults.rates.targetMPG;
       saveState();
-     state.rates.minProfitPerMile    = money(parseFloat($("r_min_profit")?.value));
-state.rates.targetProfitPerMile = money(parseFloat($("r_target_profit")?.value));
-state.rates.feesPctRevenue      = money(parseFloat($("r_fees_pct")?.value));
       toast("Saved rates");
     }
 
@@ -1809,6 +1655,8 @@ state.rates.feesPctRevenue      = money(parseFloat($("r_fees_pct")?.value));
     on("b_month","change", ()=> renderBudget());
     on("b_buffer","input", ()=> calcBudget());
     on("b_withhold","input", ()=> calcBudget());
+    on
+    ("b_withhold","input", ()=> calcBudget());
     on("b_other_income","input", ()=> calcBudget());
     on("b_paychecks","change", ()=> calcBudget());
 
@@ -1834,26 +1682,7 @@ state.rates.feesPctRevenue      = money(parseFloat($("r_fees_pct")?.value));
       // optional: auto-build preview on selection (comment out if you hate convenience)
       // buildInvoicePreview();
     });
-// Shipper / Consignee memory wiring
-on("t_shipper_name","input", ()=>{
-  const v = $("t_shipper_name")?.value || "";
-  if(v.trim().length >= 3) memToDatalist(shipperMem, $("shipperMemory"), v);
-});
-on("t_shipper_name","change", ()=> tryAutofill(shipperMem, $("t_shipper_name"), $("t_shipper_addr")));
-on("t_shipper_addr","blur", ()=>{
-  saveEntry(shipperMem, SHIPPER_MEM_KEY, $("t_shipper_name"), $("t_shipper_addr"));
-  memToDatalist(shipperMem, $("shipperMemory"), $("t_shipper_name")?.value || "");
-});
 
-on("t_consignee_name","input", ()=>{
-  const v = $("t_consignee_name")?.value || "";
-  if(v.trim().length >= 3) memToDatalist(consigneeMem, $("consigneeMemory"), v);
-});
-on("t_consignee_name","change", ()=> tryAutofill(consigneeMem, $("t_consignee_name"), $("t_consignee_addr")));
-on("t_consignee_addr","blur", ()=>{
-  saveEntry(consigneeMem, CONSIGNEE_MEM_KEY, $("t_consignee_name"), $("t_consignee_addr"));
-  memToDatalist(consigneeMem, $("consigneeMemory"), $("t_consignee_name")?.value || "");
-});
     // ========= Init =========
     loadTripDropdowns();
     loadSettingsUI();
