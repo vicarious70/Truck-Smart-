@@ -1,4 +1,1094 @@
-        // NEW
+    <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Trucking Made Simple</title>
+  <style>
+    :root{
+      --bg:#0b0f17; --card:#121a27; --muted:#93a4bf; --text:#e7eefc;
+      --acc:#57c4ff; --good:#41d38c; --bad:#ff5f73; --warn:#ffcc66;
+      --line:#1f2a3c; --chip:#172238;
+      --radius:16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --pad:14px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--font); background:linear-gradient(180deg,#070a10,#0b0f17 40%);
+      color:var(--text); padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      background:rgba(11,15,23,.78); backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+      padding:10px 6px;
+    }
+    .topRow{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+    .title{display:flex; flex-direction:column; gap:2px}
+    h1{font-size:16px; margin:0; letter-spacing:.2px}
+    .sub{font-size:12px; color:var(--muted)}
+    .tabs{display:flex; gap:8px; margin-top:10px; overflow:auto; padding-bottom:6px}
+    .tab{
+      border:1px solid var(--line); background:var(--chip); color:var(--text);
+      padding:10px 12px; border-radius:999px; font-size:13px; white-space:nowrap;
+      cursor:pointer; user-select:none;
+    }
+    .tab.active{border-color:rgba(87,196,255,.6); box-shadow:0 0 0 2px rgba(87,196,255,.18) inset}
+    main{max-width:980px; margin:12px auto 60px}
+    .grid{display:grid; grid-template-columns:1fr; gap:12px}
+    @media(min-width:880px){ .grid{grid-template-columns:1.1fr .9fr} }
+    .card{
+      background:rgba(18,26,39,.92); border:1px solid var(--line);
+      border-radius:var(--radius); box-shadow:var(--shadow); padding:var(--pad);
+    }
+    .card h2{margin:0 0 8px; font-size:15px}
+    .row{display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px}
+    @media(min-width:640px){
+      .row.two{grid-template-columns:1fr 1fr}
+      .row.three{grid-template-columns:1fr 1fr 1fr}
+      .row.four{grid-template-columns:1fr 1fr 1fr 1fr}
+    }
+    label{display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted)}
+    input, select, textarea{
+      width:100%; border:1px solid var(--line); background:#0d1421; color:var(--text);
+      border-radius:12px; padding:12px 12px; font-size:15px; outline:none;
+    }
+    textarea{min-height:80px; resize:vertical}
+    input:focus, select:focus, textarea:focus{
+      border-color:rgba(87,196,255,.7); box-shadow:0 0 0 3px rgba(87,196,255,.14);
+    }
+    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    button{
+      border:1px solid var(--line); background:var(--chip); color:var(--text);
+      padding:12px 14px; border-radius:12px; cursor:pointer; font-size:14px;
+    }
+    button.primary{border-color:rgba(87,196,255,.6); background:rgba(87,196,255,.12)}
+    button.good{border-color:rgba(65,211,140,.55); background:rgba(65,211,140,.12)}
+    button.bad{border-color:rgba(255,95,115,.55); background:rgba(255,95,115,.12)}
+    button.warn{border-color:rgba(255,204,102,.55); background:rgba(255,204,102,.10)}
+    .pill{
+      display:inline-flex; gap:8px; align-items:center; padding:8px 10px;
+      border-radius:999px; border:1px solid var(--line); background:rgba(0,0,0,.12);
+      font-size:12px; color:var(--muted)
+    }
+    .kpis{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .kpi{
+      flex:1; min-width:160px; background:rgba(0,0,0,.12);
+      border:1px solid var(--line); border-radius:14px; padding:10px 12px;
+    }
+    .kpi .label{color:var(--muted); font-size:12px}
+    .kpi .val{font-size:18px; margin-top:6px}
+    .val.good{color:var(--good)} .val.bad{color:var(--bad)} .val.warn{color:var(--warn)}
+    .list{margin-top:12px; display:flex; flex-direction:column; gap:10px;}
+    .item{
+      border:1px solid var(--line); border-radius:14px; padding:12px;
+      background:rgba(0,0,0,.10);
+    }
+    .itemTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
+    .itemTitle{font-size:14px}
+    .itemMeta{font-size:12px; color:var(--muted); margin-top:4px}
+    .itemNums{display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; color:var(--muted); font-size:12px}
+    .mono{font-variant-numeric: tabular-nums}
+    .hide{display:none !important}
+    .hr{height:1px; background:var(--line); margin:12px 0}
+    .small{font-size:12px; color:var(--muted)}
+    .dangerBox{
+      border:1px solid rgba(255,95,115,.5); background:rgba(255,95,115,.08);
+      border-radius:14px; padding:10px 12px; color:#ffd7dd;
+    }
+    .successBox{
+      border:1px solid rgba(65,211,140,.5); background:rgba(65,211,140,.08);
+      border-radius:14px; padding:10px 12px; color:#d7ffef;
+    }
+    .toast{
+      position:fixed; left:50%; transform:translateX(-50%);
+      bottom:16px; z-index:50;
+      background:rgba(0,0,0,.72); border:1px solid var(--line);
+      padding:10px 12px; border-radius:999px; color:var(--text);
+      font-size:13px; max-width:92vw; backdrop-filter: blur(10px);
+      pointer-events:none;
+    }
+
+    /* ===== Loads Dropdown Styles ===== */
+    .loads-dropdown{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .loads-summary{
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--chip);
+      user-select: none;
+      list-style: none;
+    }
+    .loads-summary::-webkit-details-marker{ display:none; }
+    .loads-content{
+      padding: 10px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    /* =========================
+       Invoice Preview (in-app)
+    ========================= */
+    .invoicePaper{
+      background:#ffffff;
+      color:#111;
+      border-radius:14px;
+      padding:18px;
+      border:1px solid rgba(255,255,255,.08);
+      overflow:auto;
+    }
+    .invoicePaper *{ box-sizing:border-box; }
+    .invTop{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      margin-bottom:12px;
+    }
+    .invH{
+      font-size:18px;
+      font-weight:700;
+      margin:0;
+      color:#111;
+    }
+    .invMuted{ color:#555; font-size:12px; }
+    .invBlock{
+      border:1px solid #e6e6e6;
+      border-radius:12px;
+      padding:12px;
+      margin-top:10px;
+    }
+    .invGrid2{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    @media(min-width:640px){ .invGrid2{ grid-template-columns:1fr 1fr; } }
+    .invTable{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+      font-size:13px;
+    }
+    .invTable th, .invTable td{
+      border-bottom:1px solid #eee;
+      padding:10px 8px;
+      text-align:left;
+      vertical-align:top;
+    }
+    .invTable th{ color:#444; font-weight:700; }
+    .invRight{ text-align:right; }
+    .invTotal{
+      display:flex;
+      justify-content:flex-end;
+      margin-top:10px;
+      font-size:14px;
+    }
+    .invTotalBox{
+      min-width:260px;
+      border:1px solid #eee;
+      border-radius:12px;
+      padding:12px;
+      background:#fafafa;
+    }
+    .invLine{
+      display:flex; justify-content:space-between; gap:10px;
+      padding:4px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .invBig{
+      font-size:16px;
+      font-weight:800;
+      border-top:1px solid #eee;
+      margin-top:8px;
+      padding-top:8px;
+    }
+
+    /* Mini table-like rows */
+    .miniList{display:flex; flex-direction:column; gap:10px; margin-top:10px;}
+    .miniRow{
+      display:grid;
+      grid-template-columns: 1.4fr .8fr .6fr;
+      gap:10px;
+      align-items:center;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px;
+      background:rgba(0,0,0,.08);
+    }
+    .miniRow .name{font-size:13px; color:var(--text)}
+    .miniRow .tag{font-size:12px; color:var(--muted)}
+    .miniRow input{padding:10px 10px; border-radius:12px;}
+    .miniRow button{padding:10px 10px; border-radius:12px;}
+    .miniRow .right{display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;}
+    .miniRow .subgrid{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+
+    /* Reserve row */
+    .resRow{
+      display:grid;
+      grid-template-columns: 1.2fr .55fr .55fr .55fr .65fr;
+      gap:8px;
+      align-items:center;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px;
+      background:rgba(0,0,0,.08);
+    }
+    .resRow .nm{font-size:13px;}
+    .resRow .cap{font-size:12px; color:var(--muted)}
+    .resRow input, .resRow select{padding:10px 10px;}
+    .resRow .tog{display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;}
+
+    /* =========================
+       PRINT: invoice-only output
+    ========================= */
+    @media print {
+      @page { margin: 14mm; }
+
+      html, body {
+        background:#fff !important;
+        color:#111 !important;
+        height:auto !important;
+      }
+
+      header, main, #toast {
+        display:none !important;
+      }
+
+      #invoicePreview {
+        display:block !important;
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+
+        background: #fff !important;
+        color:#111 !important;
+        overflow: visible !important;
+      }
+
+      .invoicePaper{
+        border:none !important;
+        border-radius:0 !important;
+        box-shadow:none !important;
+        padding:0 !important;
+        margin:0 !important;
+        background:#fff !important;
+        overflow: visible !important;
+      }
+
+      .invTop, .invBlock, .invTotal, .invTotalBox {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      table { width:100% !important; border-collapse:collapse !important; }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+      tr, td, th {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      * { overflow: visible !important; }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="topRow">
+    <div class="title">
+      <h1>Trucking Made Simple</h1>
+      <div class="sub">Offline. Stores on your phone. Built because spreadsheets hate joy.</div>
+    </div>
+    <div class="pill" id="statusPill">✅ Ready</div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="trips">🚛 Trips</div>
+    <div class="tab" data-tab="budget">🏠 Budget</div>
+    <div class="tab" data-tab="dashboard">📊 Dashboard</div>
+    <div class="tab" data-tab="invoices">🧾 Invoices</div>
+    <div class="tab" data-tab="settings">⚙️ Settings</div>
+  </div>
+</header>
+
+<main>
+  <!-- TRIPS -->
+  <section id="tab-trips" class="grid">
+    <div class="card">
+      <h2>New Trip / Load</h2>
+      <div class="row two">
+        <label>Date
+          <input id="t_date" type="date" />
+        </label>
+        <label>Company (dropdown)
+          <select id="t_company"></select>
+        </label>
+      </div>
+
+      <div class="row three">
+        <label>Truck #
+          <select id="t_truck"></select>
+        </label>
+        <label>Trailer #
+          <select id="t_trailer"></select>
+        </label>
+        <label>Tire Size
+          <select id="t_tire"></select>
+        </label>
+      </div>
+
+      <!-- Autocomplete Shipper (keeps your original dropdown too, because humans love redundancy) -->
+      <div class="row two">
+        <label>Shipper (dropdown)
+          <select id="t_shipper"></select>
+        </label>
+        <label>Shipper (type to search / save)
+          <input id="t_shipper_auto" list="dl_shippers" placeholder="Start typing…" />
+          <datalist id="dl_shippers"></datalist>
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Load / Reference #
+          <input id="t_ref" placeholder="Optional: load ID" />
+        </label>
+        <label>Hours on Road (this trip)
+          <input id="t_hours_road" type="number" min="0" step="0.25" placeholder="Optional" />
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Pickup City/State
+          <select id="t_pickup"></select>
+        </label>
+        <label>Delivery City/State
+          <select id="t_delivery"></select>
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Pickup Address
+          <input id="t_pickup_addr" placeholder="Street, city, state" />
+        </label>
+        <label>Delivery Address
+          <input id="t_delivery_addr" placeholder="Street, city, state" />
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Broker / Customer
+          <select id="t_customer"></select>
+        </label>
+
+        <!-- Autocomplete Consignee (keeps your original dropdown too) -->
+        <label>Consignee (dropdown)
+          <select id="t_consignee"></select>
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Consignee (type to search / save)
+          <input id="t_consignee_auto" list="dl_consignees" placeholder="Start typing…" />
+          <datalist id="dl_consignees"></datalist>
+        </label>
+        <label>Calendar (pickup/delivery helper)
+          <input id="t_calendar" type="date" />
+        </label>
+      </div>
+
+      <div class="row three">
+        <label>Loaded Miles
+          <input id="t_loaded_miles" type="number" min="0" step="1" placeholder="0" />
+        </label>
+        <label>Deadhead Miles (last drop → next pickup)
+          <input id="t_deadhead_miles" type="number" min="0" step="1" placeholder="0" />
+        </label>
+        <label>Rate / Trip Revenue ($)
+          <input id="t_revenue" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+      </div>
+
+      <div class="hr"></div>
+
+      <h2>Fuel + Trip Costs</h2>
+      <div class="row three">
+        <label>Fuel Gallons Purchased
+          <input id="t_fuel_gal" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+        <label>Avg Fuel Cost per Gallon ($)
+          <input id="t_fuel_cpg" type="number" min="0" step="0.001" placeholder="0.000" />
+        </label>
+        <label>Fuel Cost (auto) ($)
+          <input id="t_fuel_cost" type="number" min="0" step="0.01" placeholder="auto" />
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Tolls ($)
+          <input id="t_tolls" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+        <label>Other Trip Expenses ($)
+          <input id="t_other" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+      </div>
+
+      <div class="row">
+        <label>Notes
+          <input id="t_notes" placeholder="Anything you want to remember" />
+        </label>
+      </div>
+
+      <div class="hr"></div>
+
+      <h2>Reserves (auto with caps or manual)</h2>
+      <div class="small">
+        Defaults + caps are in ⚙️ Settings → “Owner Operator Additions”. You can override here per trip (optional).
+      </div>
+
+      <!-- Keep your original reserve inputs (do not remove) -->
+      <div class="row three">
+        <label>Tire Reserve ($)
+          <input id="t_res_tires" type="number" min="0" step="0.01" placeholder="auto" />
+        </label>
+        <label>Maintenance Reserve ($)
+          <input id="t_res_maint" type="number" min="0" step="0.01" placeholder="auto" />
+        </label>
+        <label>Plates Reserve ($)
+          <input id="t_res_plates" type="number" min="0" step="0.01" placeholder="auto" />
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>IFTA Reserve ($) (estimate)
+          <input id="t_res_ifta" type="number" min="0" step="0.01" placeholder="auto" />
+        </label>
+        <label>Tax Reserve ($) (estimate)
+          <input id="t_res_tax" type="number" min="0" step="0.01" placeholder="auto" />
+        </label>
+      </div>
+
+      <!-- NEW: extra reserve boxes (still override-friendly, auto uses caps/settings) -->
+      <div class="row three">
+        <label>Factoring Fee ($)
+          <input id="t_res_factoring" type="number" min="0" step="0.01" placeholder="auto" />
+        </label>
+        <label>Heavy Highway Use Tax ($)
+          <input id="t_res_hwy" type="number" min="0" step="0.01" placeholder="auto" />
+        </label>
+        <label>USDOT Reserve ($)
+          <input id="t_res_usdot" type="number" min="0" step="0.01" placeholder="auto" />
+        </label>
+      </div>
+
+      <div class="btnRow">
+        <button type="button" class="primary" id="btn_calc">🧮 Calculate</button>
+        <button type="button" class="good" id="btn_save">💾 Save Trip</button>
+        <button type="button" class="bad" id="btn_clear">🧽 Clear</button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="label">Total Miles</div><div class="val mono" id="k_total_miles">0</div></div>
+        <div class="kpi"><div class="label">Fuel Cost</div><div class="val mono" id="k_fuel_cost">$0.00</div></div>
+        <div class="kpi"><div class="label">MPG (est)</div><div class="val mono" id="k_mpg">0.00</div></div>
+        <div class="kpi"><div class="label">Trip Net</div><div class="val mono" id="k_net">$0.00</div></div>
+        <div class="kpi"><div class="label">O.T.R.A.F.F ($/hr)</div><div class="val mono" id="k_otraff">$0.00</div></div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="small">
+        ⚠️ IFTA here is an <i>estimate</i> unless you track miles + gallons by state.
+        This app includes a reserve estimate so you’re not surprised later.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Search Past Trips</h2>
+      <label>Search (company, shipper, pickup, delivery, ref, notes)
+        <input id="searchTrips" placeholder="type to filter..." />
+      </label>
+      <div class="btnRow">
+        <button type="button" id="btn_export">⬇️ Export Data</button>
+        <button type="button" id="btn_import">⬆️ Import Data</button>
+        <input id="importFile" type="file" accept="application/json" class="hide" />
+      </div>
+
+      <div class="hr"></div>
+
+      <details class="loads-dropdown">
+        <summary class="loads-summary">📦 Loads / Trips (tap to open)</summary>
+        <div class="loads-content">
+          <div class="list" id="tripList"></div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- BUDGET -->
+  <section id="tab-budget" class="grid hide">
+    <div class="card">
+      <h2>Monthly Personal Budget</h2>
+      <div class="row two">
+        <label>Month
+          <input id="b_month" type="month" />
+        </label>
+        <label>Comfort Buffer (%)
+          <input id="b_buffer" type="number" min="0" step="1" placeholder="15" />
+        </label>
+      </div>
+
+      <div class="row three">
+        <label>Paychecks per Month
+          <select id="b_paychecks">
+            <option value="2">2 (biweekly-ish)</option>
+            <option value="4">4 (weekly)</option>
+            <option value="1">1 (monthly)</option>
+          </select>
+        </label>
+        <label>Estimated Tax/Withholding (%)
+          <input id="b_withhold" type="number" min="0" step="1" placeholder="20" />
+        </label>
+        <label>Other Monthly Income ($)
+          <input id="b_other_income" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+      </div>
+
+      <div class="hr"></div>
+
+      <h2>Add Expense</h2>
+      <div class="row two">
+        <label>Category
+          <select id="b_cat"></select>
+        </label>
+        <label>Amount ($)
+          <input id="b_amt" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+      </div>
+      <div class="row">
+        <label>Note (optional)
+          <input id="b_note" placeholder="ex: Netflix, rent, car insurance..." />
+        </label>
+      </div>
+
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_add_exp">➕ Add</button>
+        <button type="button" class="primary" id="btn_budget_calc">🧮 Calculate Paycheck Needed</button>
+        <button type="button" class="bad" id="btn_budget_clear">🧽 Clear Month</button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="label">Total Monthly Expenses</div><div class="val mono" id="k_b_total">$0.00</div></div>
+        <div class="kpi"><div class="label">Needed (Gross)</div><div class="val mono" id="k_b_gross">$0.00</div></div>
+        <div class="kpi"><div class="label">Needed Per Paycheck (Gross)</div><div class="val mono" id="k_b_percheck">$0.00</div></div>
+        <div class="kpi"><div class="label">Needed (Net after Withholding)</div><div class="val mono" id="k_b_net">$0.00</div></div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="list" id="budgetList"></div>
+    </div>
+
+    <div class="card">
+      <h2>Monthly Goals</h2>
+      <div class="row two">
+        <label>Business Monthly Revenue Goal ($)
+          <input id="g_biz" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+        <label>Personal Monthly Income Goal ($)
+          <input id="g_personal" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+      </div>
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_save_goals">💾 Save Goals</button>
+      </div>
+      <div id="goalMsg" class="small"></div>
+
+      <div class="hr"></div>
+      <div class="small">
+        Goals are compared against your saved trips (revenue) and your budget calculator (needed income).
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="tab-dashboard" class="grid hide">
+    <div class="card">
+      <h2>Business Dashboard</h2>
+      <div class="row two">
+        <label>Year
+          <select id="d_year"></select>
+        </label>
+        <label>Filter Month (optional)
+          <input id="d_month" type="month" />
+        </label>
+      </div>
+      <div class="btnRow">
+        <button type="button" class="primary" id="btn_dash">📊 Refresh</button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="label">Revenue</div><div class="val mono" id="d_rev">$0.00</div></div>
+        <div class="kpi"><div class="label">Expenses</div><div class="val mono" id="d_exp">$0.00</div></div>
+        <div class="kpi"><div class="label">Net</div><div class="val mono" id="d_net">$0.00</div></div>
+        <div class="kpi"><div class="label">Miles</div><div class="val mono" id="d_miles">0</div></div>
+      </div>
+
+      <div class="hr"></div>
+      <div id="dashGoalBox" class="dangerBox hide"></div>
+      <div id="dashGoalOk" class="successBox hide"></div>
+
+      <div class="hr"></div>
+      <div class="small">
+        YTD is based on trips saved on this phone. Export/import if you switch devices.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Quick Insights</h2>
+      <div class="list" id="insights"></div>
+    </div>
+
+    <!-- Blueprint Results Card -->
+    <div class="card">
+      <h2>Rate Per Mile Blueprint (Read Only)</h2>
+
+      <div class="kpis">
+        <div class="kpi"><div class="label">Total Monthly Fixed Costs</div><div class="val mono" id="bp_fixed">$0.00</div></div>
+        <div class="kpi"><div class="label">Required Monthly Revenue</div><div class="val mono" id="bp_required">$0.00</div></div>
+        <div class="kpi"><div class="label">OTR Rate / Mile (Monthly Miles)</div><div class="val mono" id="bp_otr_rpm">$0.00</div></div>
+        <div class="kpi"><div class="label">Local Rate / Mile (6,000 miles)</div><div class="val mono" id="bp_local_rpm">$0.00</div></div>
+        <div class="kpi"><div class="label">Hourly Wage While Away</div><div class="val mono" id="bp_hourly">$0.00</div></div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- NEW: Blueprint Guide dropdown (read only, editable only in settings) -->
+      <h2 style="margin-top:0">Blueprint Guide (Read Only)</h2>
+      <div class="small">This shows your “fixed” DNA. Change it only in ⚙️ Settings.</div>
+      <div class="row two">
+        <label>Blueprint Guide (dropdown)
+          <select id="bp_guide"></select>
+        </label>
+        <label>Reserve Caps Progress (Year)
+          <select id="bp_caps_year"></select>
+        </label>
+      </div>
+      <div id="bp_caps_box" class="small"></div>
+      <div class="btnRow">
+        <button type="button" class="primary" id="btn_jump_settings">⚙️ Go to Settings</button>
+        <button type="button" class="warn" id="btn_reset_caps_year">♻️ Reset Caps (THIS YEAR)</button>
+      </div>
+
+      <div class="small" style="margin-top:10px">
+        Calculated from your Blueprint + Additions in ⚙️ Settings.
+      </div>
+    </div>
+  </section>
+
+  <!-- INVOICES -->
+  <section id="tab-invoices" class="grid hide">
+    <div class="card">
+      <h2>Invoices</h2>
+      <div class="small">Pick a saved trip, preview the invoice, then print (or “Save as PDF”).</div>
+
+      <div class="row">
+        <label>Select Trip / Load
+          <select id="inv_trip"></select>
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Invoice Date (optional override)
+          <input id="inv_date" type="date" />
+        </label>
+        <label>Invoice # (optional override)
+          <input id="inv_number" placeholder="auto" />
+        </label>
+      </div>
+
+      <div class="btnRow">
+        <button type="button" class="primary" id="btn_inv_preview">🧾 Build Preview</button>
+        <button type="button" class="good" id="btn_inv_print">🖨️ Print / Save PDF</button>
+      </div>
+
+      <div class="hr"></div>
+      <div id="invoicePreview" class="invoicePaper">
+        <div class="invMuted">No invoice selected yet.</div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="small">
+        Tip: On iPhone/Android, use the browser share/print options to save as PDF.
+      </div>
+    </div>
+
+    <!-- NEW: Brokers email-ready quote box -->
+    <div class="card">
+      <h2>Brokers (Email-ready Quote)</h2>
+      <div class="small">Format a clean quote you can email to brokers (valid info + rates).</div>
+
+      <div class="row two">
+        <label>Broker / Customer (dropdown)
+          <select id="q_broker"></select>
+        </label>
+        <label>Broker Email (optional)
+          <input id="q_email" placeholder="broker@company.com" />
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Pickup City/State
+          <select id="q_pickup"></select>
+        </label>
+        <label>Delivery City/State
+          <select id="q_delivery"></select>
+        </label>
+      </div>
+
+      <div class="row three">
+        <label>Total Miles
+          <input id="q_miles" type="number" min="0" step="1" placeholder="0" />
+        </label>
+        <label>All-in Rate ($)
+          <input id="q_rate" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+        <label>Rate per Mile (auto)
+          <input id="q_rpm" type="number" min="0" step="0.001" placeholder="auto" />
+        </label>
+      </div>
+
+      <div class="row">
+        <label>Notes / Requirements (optional)
+          <input id="q_notes" placeholder="appointment, detention, lumper, hazmat, etc." />
+        </label>
+      </div>
+
+      <div class="btnRow">
+        <button type="button" class="primary" id="btn_quote_build">✉️ Build Quote</button>
+        <button type="button" class="good" id="btn_quote_copy">📋 Copy</button>
+        <button type="button" id="btn_quote_email">📨 Open Email</button>
+      </div>
+
+      <div class="hr"></div>
+      <textarea id="q_out" class="mono" style="min-height:170px" placeholder="Your broker quote will appear here…"></textarea>
+
+      <div class="small">
+        Email button uses <span class="mono">mailto:</span> (works on phones if your email app is set up).
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>What prints</h2>
+      <div class="small">
+        Print now shows ONLY the invoice preview. (No header, no tabs, no “app” junk.)
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="tab-settings" class="grid hide">
+    <div class="card">
+      <h2>Dropdown Lists</h2>
+      <div class="small">Edit lists, then hit Save.</div>
+
+      <div class="row two">
+        <label>Companies (one per line)
+          <textarea id="s_companies"></textarea>
+        </label>
+        <label>Shippers (one per line)
+          <textarea id="s_shippers"></textarea>
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Pickup/Delivery Locations (City, ST) one per line
+          <textarea id="s_locations"></textarea>
+        </label>
+        <label>Tire Sizes (one per line)
+          <textarea id="s_tires"></textarea>
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Truck Numbers (one per line)
+          <textarea id="s_trucks"></textarea>
+        </label>
+        <label>Trailer Numbers (one per line)
+          <textarea id="s_trailers"></textarea>
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Customers / Brokers (one per line)
+          <textarea id="s_customers"></textarea>
+        </label>
+        <label>Consignees (one per line)
+          <textarea id="s_consignees"></textarea>
+        </label>
+      </div>
+
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_save_lists">💾 Save Lists</button>
+        <button type="button" class="bad" id="btn_reset_lists">↩️ Reset Defaults</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Default Reserves & Rates</h2>
+      <div class="small">These feed auto-calcs for every trip. You can override per trip.</div>
+
+      <div class="row three">
+        <label>Tire Reserve ($ per mile)
+          <input id="r_tires" type="number" min="0" step="0.001" />
+        </label>
+        <label>Maintenance Reserve ($ per mile)
+          <input id="r_maint" type="number" min="0" step="0.001" />
+        </label>
+        <label>Plates Reserve ($ per mile)
+          <input id="r_plates" type="number" min="0" step="0.001" />
+        </label>
+      </div>
+      <div class="row three">
+        <label>IFTA Reserve ($ per mile) (estimate)
+          <input id="r_ifta" type="number" min="0" step="0.001" />
+        </label>
+        <label>Tax Reserve (% of revenue)
+          <input id="r_tax_pct" type="number" min="0" step="0.1" />
+        </label>
+        <label>Target MPG (for estimates if gallons missing)
+          <input id="r_mpg" type="number" min="1" step="0.1" />
+        </label>
+      </div>
+
+      <div class="row two">
+        <label>Default Fuel Cost/gal ($) (used if trip field empty)
+          <input id="r_fuel_cpg" type="number" min="0" step="0.001" />
+        </label>
+        <label>Default “Hours on Road” if blank
+          <input id="r_hours_road" type="number" min="0" step="0.25" />
+        </label>
+      </div>
+
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_save_rates">💾 Save Rates</button>
+      </div>
+
+      <div class="hr"></div>
+      <div class="dangerBox">
+        <b>IFTA note:</b> Real IFTA requires miles + gallons by jurisdiction. This app uses a reserve estimate so you don’t get wrecked later.
+      </div>
+    </div>
+
+    <!-- Blueprint Settings Card (original kept) -->
+    <div class="card">
+      <h2>Owner Operator Financial Blueprint (Settings)</h2>
+
+      <h3 style="margin:10px 0 0;font-size:13px;color:var(--muted)">Household Monthly Expenses</h3>
+      <div class="row two">
+        <label>House Payment <input id="hh_house" type="number" value="1500"></label>
+        <label>Utilities <input id="hh_utils" type="number" value="500"></label>
+        <label>Car Payment <input id="hh_car" type="number" value="500"></label>
+        <label>Groceries <input id="hh_food" type="number" value="700"></label>
+        <label>Gas / Household Fuel <input id="hh_gas" type="number" value="400"></label>
+      </div>
+
+      <h3 style="margin:10px 0 0;font-size:13px;color:var(--muted)">Business Monthly Expenses</h3>
+      <div class="row two">
+        <label>Truck Payment <input id="biz_truck" type="number" value="1500"></label>
+        <label>Trailer Payment <input id="biz_trailer" type="number" value="1100"></label>
+        <label>Insurance <input id="biz_ins" type="number" value="1500"></label>
+        <label>Business Phone <input id="biz_phone" type="number" value="150"></label>
+        <label>Parking <input id="biz_parking" type="number" value="300"></label>
+        <label>ELDs <input id="biz_eld" type="number" value="25"></label>
+        <label>Load Board <input id="biz_loadboard" type="number" value="169"></label>
+
+        <!-- NEW: Driver wage on/off, but keeping your original weekly wage field too -->
+        <label>Driver Wage (Weekly) <input id="biz_driver_week" type="number" value="1000"></label>
+      </div>
+
+      <div class="row two">
+        <label>Company Driver Wage Enabled
+          <select id="biz_driver_on">
+            <option value="on">On</option>
+            <option value="off">Off</option>
+          </select>
+        </label>
+        <label>Entertainment (household) ($/month)
+          <input id="hh_ent" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+      </div>
+
+      <h3 style="margin:10px 0 0;font-size:13px;color:var(--muted)">Miles & Time</h3>
+      <div class="row two">
+        <label>Monthly Miles <input id="bp_month_miles" type="number" value="12500"></label>
+        <label>Yearly Miles <input id="bp_year_miles" type="number" value="144000"></label>
+        <label>Days Away / Week <input id="bp_days" type="number" value="2"></label>
+        <label>Hours per Load <input id="bp_hours" type="number" value="10"></label>
+      </div>
+
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_blueprint_save">💾 Save Blueprint</button>
+      </div>
+
+      <div class="small">
+        Save here, view results in 📊 Dashboard.
+      </div>
+    </div>
+
+    <!-- NEW: Owner Operator Additions (editable dropdown-like lists + reserve percentages + caps) -->
+    <div class="card">
+      <h2>Trucking Made Simple Owner Operators Addition</h2>
+      <div class="small">
+        Settings for: Household expenses (editable), Trucking company expenses (editable), reserve % (editable), yearly/monthly miles (editable), and caps. This is the “DNA” engine.
+      </div>
+
+      <div class="hr"></div>
+
+      <h3 style="margin:0;font-size:13px;color:var(--muted)">Household Expenses (editable list)</h3>
+      <div class="small">Add/remove items. Amounts are monthly. “Car gas” is here too.</div>
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_hh_add">➕ Add Household Expense</button>
+      </div>
+      <div id="hh_list" class="miniList"></div>
+
+      <div class="hr"></div>
+
+      <h3 style="margin:0;font-size:13px;color:var(--muted)">Trucking Company Business Expenses (editable list)</h3>
+      <div class="small">Monthly expenses. Driver wage is handled separately too (toggle above).</div>
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_biz_add">➕ Add Business Expense</button>
+      </div>
+      <div id="biz_list" class="miniList"></div>
+
+      <div class="hr"></div>
+
+      <h3 style="margin:0;font-size:13px;color:var(--muted)">Reserve Percentages (editable) + Caps (yearly)</h3>
+      <div class="small">
+        % are taken from each load (revenue). Caps are yearly. “Continue after cap” lets you keep funding after cap, or stop until next year.
+      </div>
+
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_resets_defaults">↩️ Reset Reserve Defaults</button>
+      </div>
+
+      <div id="res_list" class="miniList"></div>
+
+      <div class="hr"></div>
+
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_ownerop_save">💾 Save Owner-Op Additions</button>
+      </div>
+
+      <div class="small">These settings drive auto-reserves, caps, and the Blueprint Guide dropdown.</div>
+    </div>
+
+    <div class="card">
+      <h2>Budget Categories</h2>
+      <div class="small">One per line.</div>
+      <textarea id="s_budget_cats"></textarea>
+      <div class="btnRow">
+        <button type="button" class="good" id="btn_save_budget_cats">💾 Save Categories</button>
+      </div>
+
+      <div class="hr"></div>
+      <button type="button" class="bad" id="btn_nuke">🧨 Delete ALL Data (Danger)</button>
+      <div class="small">This wipes trips, budget, goals. There is no undo.</div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast hide">Saved.</div>
+
+<script type="text/javascript">
+  console.log("SCRIPT START");
+
+  function setStatus(text){
+    const pill = document.getElementById("statusPill");
+    if(pill) pill.textContent = text;
+  }
+  window.addEventListener("error", (e)=>{
+    console.error("JS Error:", e?.error || e?.message || e);
+    setStatus("❌ Error (open Console)");
+  });
+  window.addEventListener("unhandledrejection", (e)=>{
+    console.error("Unhandled Promise Rejection:", e?.reason || e);
+    setStatus("❌ Error (open Console)");
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    try {
+      if (typeof structuredClone !== "function") {
+        window.structuredClone = (obj) => JSON.parse(JSON.stringify(obj));
+      }
+      if (!window.crypto) window.crypto = {};
+      if (typeof window.crypto.randomUUID !== "function") {
+        window.crypto.randomUUID = () => {
+          return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+            const r = (Math.random() * 16) | 0;
+            const v = c === "x" ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+          });
+        };
+      }
+
+      const LS_KEY = "truckBudgetTracker.v1";
+      const money = (n)=> (isFinite(n) ? n : 0);
+      const fmtMoney = (n)=> "$" + money(n).toFixed(2);
+      const fmtNum = (n)=> (isFinite(n) ? n : 0).toLocaleString();
+
+      const defaults = {
+        lists: {
+          companies: ["Select…","ACME Logistics","Blue River Transport"],
+          shippers: ["Select…","Amazon","Walmart DC","Target DC"],
+          locations: ["Select…","Atlanta, GA","Dallas, TX","Chicago, IL","Newark, NJ"],
+          tires: ["Select…","22.5","24.5","11R22.5"],
+          trucks: ["Select…","101","102","103"],
+          trailers: ["Select…","T-201","T-202","T-203"],
+          budgetCats: [
+            "Household expenses","Groceries","Entertainment","Mortgage/Rent",
+            "Car note","Utilities","Phone/Internet","Insurance","Gas/Transportation",
+            "Personal","Savings","Medical"
+          ],
+          customers: ["Select…","CH Robinson","TQL","JB Hunt"],
+          consignees: ["Select…","Walmart DC","Amazon FC","Costco DC"]
+        },
+        rates: {
+          tiresPerMile: 0.05,
+          maintPerMile: 0.12,
+          platesPerMile: 0.02,
+          iftaPerMile: 0.03,
+          taxPctRevenue: 22,
+          targetMPG: 6.5,
+          defaultFuelCPG: 0,
+          defaultHoursRoad: 0
+        },
+        blueprint: {
+          household: { house:1500, utils:500, car:500, food:700, gas:400, ent:0 },
+          business: { truck:1500, trailer:1100, ins:1500, phone:150, parking:300, eld:25, loadboard:169, driverWeek:1000, driverOn:true },
+          miles: { month:12500, year:144000, daysAway:2, hoursPerLoad:10 }
+        },
+
+               // NEW
         ownerop: {
           // Editable “lists” for Owner-Op Additions
           householdItems: [
@@ -1462,6 +2552,5 @@ Thank you,`;
     }
   });
 </script>
-
 </body>
 </html>
