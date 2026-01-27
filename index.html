@@ -1,954 +1,154 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Trucking Made Simple</title>
-  <style>
-    :root{
-      --bg:#0b0f17; --card:#121a27; --muted:#93a4bf; --text:#e7eefc;
-      --acc:#57c4ff; --good:#41d38c; --bad:#ff5f73; --warn:#ffcc66;
-      --line:#1f2a3c; --chip:#172238;
-      --radius:16px;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --pad:14px;
-      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:var(--font); background:linear-gradient(180deg,#070a10,#0b0f17 40%);
-      color:var(--text); padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
-    }
-    header{
-      position:sticky; top:0; z-index:10;
-      background:rgba(11,15,23,.78); backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
-      padding:10px 6px;
-    }
-    .topRow{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap}
-    .title{display:flex; flex-direction:column; gap:2px}
-    h1{font-size:16px; margin:0; letter-spacing:.2px}
-    .sub{font-size:12px; color:var(--muted)}
-    .tabs{display:flex; gap:8px; margin-top:10px; overflow:auto; padding-bottom:6px}
-    .tab{
-      border:1px solid var(--line); background:var(--chip); color:var(--text);
-      padding:10px 12px; border-radius:999px; font-size:13px; white-space:nowrap;
-      cursor:pointer; user-select:none;
-    }
-    .tab.active{border-color:rgba(87,196,255,.6); box-shadow:0 0 0 2px rgba(87,196,255,.18) inset}
-    main{max-width:980px; margin:12px auto 60px}
-    .grid{display:grid; grid-template-columns:1fr; gap:12px}
-    @media(min-width:880px){ .grid{grid-template-columns:1.1fr .9fr} }
-    .card{
-      background:rgba(18,26,39,.92); border:1px solid var(--line);
-      border-radius:var(--radius); box-shadow:var(--shadow); padding:var(--pad);
-    }
-    .card h2{margin:0 0 8px; font-size:15px}
-    .row{display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px}
-    @media(min-width:640px){
-      .row.two{grid-template-columns:1fr 1fr}
-      .row.three{grid-template-columns:1fr 1fr 1fr}
-    }
-    label{display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted)}
-    input, select, textarea{
-      width:100%; border:1px solid var(--line); background:#0d1421; color:var(--text);
-      border-radius:12px; padding:12px 12px; font-size:15px; outline:none;
-    }
-    textarea{min-height:80px; resize:vertical}
-    input:focus, select:focus, textarea:focus{
-      border-color:rgba(87,196,255,.7); box-shadow:0 0 0 3px rgba(87,196,255,.14);
-    }
-    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
-    button{
-      border:1px solid var(--line); background:var(--chip); color:var(--text);
-      padding:12px 14px; border-radius:12px; cursor:pointer; font-size:14px;
-    }
-    button.primary{border-color:rgba(87,196,255,.6); background:rgba(87,196,255,.12)}
-    button.good{border-color:rgba(65,211,140,.55); background:rgba(65,211,140,.12)}
-    button.bad{border-color:rgba(255,95,115,.55); background:rgba(255,95,115,.12)}
-    .pill{
-      display:inline-flex; gap:8px; align-items:center; padding:8px 10px;
-      border-radius:999px; border:1px solid var(--line); background:rgba(0,0,0,.12);
-      font-size:12px; color:var(--muted)
-    }
-    .kpis{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
-    .kpi{
-      flex:1; min-width:160px; background:rgba(0,0,0,.12);
-      border:1px solid var(--line); border-radius:14px; padding:10px 12px;
-    }
-    .kpi .label{color:var(--muted); font-size:12px}
-    .kpi .val{font-size:18px; margin-top:6px}
-    .val.good{color:var(--good)} .val.bad{color:var(--bad)} .val.warn{color:var(--warn)}
-    .list{margin-top:12px; display:flex; flex-direction:column; gap:10px;}
-    .item{
-      border:1px solid var(--line); border-radius:14px; padding:12px;
-      background:rgba(0,0,0,.10);
-    }
-    .itemTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
-    .itemTitle{font-size:14px}
-    .itemMeta{font-size:12px; color:var(--muted); margin-top:4px}
-    .itemNums{display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; color:var(--muted); font-size:12px}
-    .mono{font-variant-numeric: tabular-nums}
-    .hide{display:none !important}
-    .hr{height:1px; background:var(--line); margin:12px 0}
-    .small{font-size:12px; color:var(--muted)}
-    .dangerBox{
-      border:1px solid rgba(255,95,115,.5); background:rgba(255,95,115,.08);
-      border-radius:14px; padding:10px 12px; color:#ffd7dd;
-    }
-    .successBox{
-      border:1px solid rgba(65,211,140,.5); background:rgba(65,211,140,.08);
-      border-radius:14px; padding:10px 12px; color:#d7ffef;
-    }
-    .toast{
-      position:fixed; left:50%; transform:translateX(-50%);
-      bottom:16px; z-index:50;
-      background:rgba(0,0,0,.72); border:1px solid var(--line);
-      padding:10px 12px; border-radius:999px; color:var(--text);
-      font-size:13px; max-width:92vw; backdrop-filter: blur(10px);
-      pointer-events:none;
-    }
-
-    /* ===== Loads Dropdown Styles ===== */
-    .loads-dropdown{
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      margin-top: 10px;
-    }
-    .loads-summary{
-      cursor: pointer;
-      padding: 12px 14px;
-      font-weight: 700;
-      color: var(--text);
-      background: var(--chip);
-      user-select: none;
-      list-style: none;
-    }
-    .loads-summary::-webkit-details-marker{ display:none; }
-    .loads-content{
-      padding: 10px;
-      max-height: 420px;
-      overflow-y: auto;
-    }
-
-    /* =========================
-       Invoice Preview (in-app)
-    ========================= */
-    .invoicePaper{
-      background:#ffffff;
-      color:#111;
-      border-radius:14px;
-      padding:18px;
-      border:1px solid rgba(255,255,255,.08);
-      overflow:auto;
-    }
-    .invoicePaper *{ box-sizing:border-box; }
-    .invTop{
-      display:flex;
-      justify-content:space-between;
-      gap:14px;
-      flex-wrap:wrap;
-      align-items:flex-start;
-      margin-bottom:12px;
-    }
-    .invH{
-      font-size:18px;
-      font-weight:700;
-      margin:0;
-      color:#111;
-    }
-    .invMuted{ color:#555; font-size:12px; }
-    .invBlock{
-      border:1px solid #e6e6e6;
-      border-radius:12px;
-      padding:12px;
-      margin-top:10px;
-    }
-    .invGrid2{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-    }
-    @media(min-width:640px){ .invGrid2{ grid-template-columns:1fr 1fr; } }
-    .invTable{
-      width:100%;
-      border-collapse:collapse;
-      margin-top:10px;
-      font-size:13px;
-    }
-    .invTable th, .invTable td{
-      border-bottom:1px solid #eee;
-      padding:10px 8px;
-      text-align:left;
-      vertical-align:top;
-    }
-    .invTable th{ color:#444; font-weight:700; }
-    .invRight{ text-align:right; }
-    .invTotal{
-      display:flex;
-      justify-content:flex-end;
-      margin-top:10px;
-      font-size:14px;
-    }
-    .invTotalBox{
-      min-width:260px;
-      border:1px solid #eee;
-      border-radius:12px;
-      padding:12px;
-      background:#fafafa;
-    }
-    .invLine{
-      display:flex; justify-content:space-between; gap:10px;
-      padding:4px 0;
-      font-variant-numeric: tabular-nums;
-    }
-    .invBig{
-      font-size:16px;
-      font-weight:800;
-      border-top:1px solid #eee;
-      margin-top:8px;
-      padding-top:8px;
-    }
-
-    /* =========================
-       PRINT: invoice-only output
-    ========================= */
-    @media print {
-      @page { margin: 14mm; }
-
-      html, body {
-        background:#fff !important;
-        color:#111 !important;
-        height:auto !important;
-      }
-
-      header, main, #toast {
-        display:none !important;
-      }
-
-      #invoicePreview {
-        display:block !important;
-        position: static !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-
-        border: none !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-
-        background: #fff !important;
-        color:#111 !important;
-        overflow: visible !important;
-      }
-
-      .invoicePaper{
-        border:none !important;
-        border-radius:0 !important;
-        box-shadow:none !important;
-        padding:0 !important;
-        margin:0 !important;
-        background:#fff !important;
-        overflow: visible !important;
-      }
-
-      .invTop, .invBlock, .invTotal, .invTotalBox {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-
-      table { width:100% !important; border-collapse:collapse !important; }
-      thead { display: table-header-group; }
-      tfoot { display: table-footer-group; }
-      tr, td, th {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-
-      * { overflow: visible !important; }
-
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-    }
-  </style>
-</head>
-
-<body>
-<header>
-  <div class="topRow">
-    <div class="title">
-      <h1>Trucking Made Simple</h1>
-      <div class="sub">Offline. Stores on your phone. Built because spreadsheets hate joy.</div>
-    </div>
-    <div class="pill" id="statusPill">✅ Ready</div>
-  </div>
-  <div class="tabs">
-    <div class="tab active" data-tab="trips">🚛 Trips</div>
-    <div class="tab" data-tab="budget">🏠 Budget</div>
-    <div class="tab" data-tab="dashboard">📊 Dashboard</div>
-    <div class="tab" data-tab="invoices">🧾 Invoices</div>
-    <div class="tab" data-tab="settings">⚙️ Settings</div>
-  </div>
-</header>
-
-<main>
-  <!-- TRIPS -->
-  <section id="tab-trips" class="grid">
-    <div class="card">
-      <h2>New Trip / Load</h2>
-      <div class="row two">
-        <label>Date
-          <input id="t_date" type="date" />
-        </label>
-        <label>Company (dropdown)
-          <select id="t_company"></select>
-        </label>
-      </div>
-
-      <div class="row three">
-        <label>Truck #
-          <select id="t_truck"></select>
-        </label>
-        <label>Trailer #
-          <select id="t_trailer"></select>
-        </label>
-        <label>Tire Size
-          <select id="t_tire"></select>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Shipper
-          <select id="t_shipper"></select>
-        </label>
-        <label>Load / Reference #
-          <input id="t_ref" placeholder="Optional: load ID" />
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Pickup City/State
-          <select id="t_pickup"></select>
-        </label>
-        <label>Delivery City/State
-          <select id="t_delivery"></select>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Pickup Address
-          <input id="t_pickup_addr" placeholder="Street, city, state" />
-        </label>
-        <label>Delivery Address
-          <input id="t_delivery_addr" placeholder="Street, city, state" />
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Broker / Customer
-          <select id="t_customer"></select>
-        </label>
-        <label>Consignee
-          <select id="t_consignee"></select>
-        </label>
-      </div>
-
-      <div class="row three">
-        <label>Loaded Miles
-          <input id="t_loaded_miles" type="number" min="0" step="1" placeholder="0" />
-        </label>
-        <label>Deadhead Miles (last drop → next pickup)
-          <input id="t_deadhead_miles" type="number" min="0" step="1" placeholder="0" />
-        </label>
-        <label>Rate / Trip Revenue ($)
-          <input id="t_revenue" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-
-      <div class="hr"></div>
-
-      <h2>Fuel + Trip Costs</h2>
-      <div class="row three">
-        <label>Fuel Gallons Purchased
-          <input id="t_fuel_gal" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-        <label>Avg Fuel Cost per Gallon ($)
-          <input id="t_fuel_cpg" type="number" min="0" step="0.001" placeholder="0.000" />
-        </label>
-        <label>Tolls ($)
-          <input id="t_tolls" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Other Trip Expenses ($)
-          <input id="t_other" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-        <label>Notes
-          <input id="t_notes" placeholder="Anything you want to remember" />
-        </label>
-      </div>
-
-      <div class="hr"></div>
-
-      <h2>Reserves (auto or manual)</h2>
-      <div class="small">Set default per-mile reserves in ⚙️ Settings. You can override here per trip.</div>
-      <div class="row three">
-        <label>Tire Reserve ($)
-          <input id="t_res_tires" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-        <label>Maintenance Reserve ($)
-          <input id="t_res_maint" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-        <label>Plates Reserve ($)
-          <input id="t_res_plates" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>IFTA Reserve ($) (estimate)
-          <input id="t_res_ifta" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-        <label>Tax Reserve ($) (estimate)
-          <input id="t_res_tax" type="number" min="0" step="0.01" placeholder="auto" />
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="primary" id="btn_calc">🧮 Calculate</button>
-        <button type="button" class="good" id="btn_save">💾 Save Trip</button>
-        <button type="button" class="bad" id="btn_clear">🧽 Clear</button>
-      </div>
-
-      <div class="kpis">
-        <div class="kpi"><div class="label">Total Miles</div><div class="val mono" id="k_total_miles">0</div></div>
-        <div class="kpi"><div class="label">Fuel Cost</div><div class="val mono" id="k_fuel_cost">$0.00</div></div>
-        <div class="kpi"><div class="label">MPG (est)</div><div class="val mono" id="k_mpg">0.00</div></div>
-        <div class="kpi"><div class="label">Trip Net</div><div class="val mono" id="k_net">$0.00</div></div>
-      </div>
-
-      <div class="hr"></div>
-      <div class="small">
-        ⚠️ IFTA here is an <i>estimate</i> unless you track miles + gallons by state.
-        This app includes a reserve estimate so you’re not surprised later.
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Search Past Trips</h2>
-      <label>Search (company, shipper, pickup, delivery, ref, notes)
-        <input id="searchTrips" placeholder="type to filter..." />
-      </label>
-      <div class="btnRow">
-        <button type="button" id="btn_export">⬇️ Export Data</button>
-        <button type="button" id="btn_import">⬆️ Import Data</button>
-        <input id="importFile" type="file" accept="application/json" class="hide" />
-      </div>
-
-      <div class="hr"></div>
-
-      <details class="loads-dropdown">
-        <summary class="loads-summary">📦 Loads / Trips (tap to open)</summary>
-        <div class="loads-content">
-          <div class="list" id="tripList"></div>
-        </div>
-      </details>
-    </div>
-  </section>
-
-  <!-- BUDGET -->
-  <section id="tab-budget" class="grid hide">
-    <div class="card">
-      <h2>Monthly Personal Budget</h2>
-      <div class="row two">
-        <label>Month
-          <input id="b_month" type="month" />
-        </label>
-        <label>Comfort Buffer (%)
-          <input id="b_buffer" type="number" min="0" step="1" placeholder="15" />
-        </label>
-      </div>
-
-      <div class="row three">
-        <label>Paychecks per Month
-          <select id="b_paychecks">
-            <option value="2">2 (biweekly-ish)</option>
-            <option value="4">4 (weekly)</option>
-            <option value="1">1 (monthly)</option>
-          </select>
-        </label>
-        <label>Estimated Tax/Withholding (%)
-          <input id="b_withhold" type="number" min="0" step="1" placeholder="20" />
-        </label>
-        <label>Other Monthly Income ($)
-          <input id="b_other_income" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-
-      <div class="hr"></div>
-
-      <h2>Add Expense</h2>
-      <div class="row two">
-        <label>Category
-          <select id="b_cat"></select>
-        </label>
-        <label>Amount ($)
-          <input id="b_amt" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-      <div class="row">
-        <label>Note (optional)
-          <input id="b_note" placeholder="ex: Netflix, rent, car insurance..." />
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_add_exp">➕ Add</button>
-        <button type="button" class="primary" id="btn_budget_calc">🧮 Calculate Paycheck Needed</button>
-        <button type="button" class="bad" id="btn_budget_clear">🧽 Clear Month</button>
-      </div>
-
-      <div class="kpis">
-        <div class="kpi"><div class="label">Total Monthly Expenses</div><div class="val mono" id="k_b_total">$0.00</div></div>
-        <div class="kpi"><div class="label">Needed (Gross)</div><div class="val mono" id="k_b_gross">$0.00</div></div>
-        <div class="kpi"><div class="label">Needed Per Paycheck (Gross)</div><div class="val mono" id="k_b_percheck">$0.00</div></div>
-        <div class="kpi"><div class="label">Needed (Net after Withholding)</div><div class="val mono" id="k_b_net">$0.00</div></div>
-      </div>
-
-      <div class="hr"></div>
-      <div class="list" id="budgetList"></div>
-    </div>
-
-    <div class="card">
-      <h2>Monthly Goals</h2>
-      <div class="row two">
-        <label>Business Monthly Revenue Goal ($)
-          <input id="g_biz" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-        <label>Personal Monthly Income Goal ($)
-          <input id="g_personal" type="number" min="0" step="0.01" placeholder="0.00" />
-        </label>
-      </div>
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_save_goals">💾 Save Goals</button>
-      </div>
-      <div id="goalMsg" class="small"></div>
-
-      <div class="hr"></div>
-      <div class="small">
-        Goals are compared against your saved trips (revenue) and your budget calculator (needed income).
-      </div>
-    </div>
-  </section>
-
-  <!-- DASHBOARD -->
-  <section id="tab-dashboard" class="grid hide">
-    <div class="card">
-      <h2>Business Dashboard</h2>
-      <div class="row two">
-        <label>Year
-          <select id="d_year"></select>
-        </label>
-        <label>Filter Month (optional)
-          <input id="d_month" type="month" />
-        </label>
-      </div>
-      <div class="btnRow">
-        <button type="button" class="primary" id="btn_dash">📊 Refresh</button>
-      </div>
-
-      <div class="kpis">
-        <div class="kpi"><div class="label">Revenue</div><div class="val mono" id="d_rev">$0.00</div></div>
-        <div class="kpi"><div class="label">Expenses</div><div class="val mono" id="d_exp">$0.00</div></div>
-        <div class="kpi"><div class="label">Net</div><div class="val mono" id="d_net">$0.00</div></div>
-        <div class="kpi"><div class="label">Miles</div><div class="val mono" id="d_miles">0</div></div>
-      </div>
-
-      <div class="hr"></div>
-      <div id="dashGoalBox" class="dangerBox hide"></div>
-      <div id="dashGoalOk" class="successBox hide"></div>
-
-      <div class="hr"></div>
-      <div class="small">
-        YTD is based on trips saved on this phone. Export/import if you switch devices.
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Quick Insights</h2>
-      <div class="list" id="insights"></div>
-    </div>
-
-    <!-- Blueprint Results Card -->
-    <div class="card">
-      <h2>Rate Per Mile Blueprint (Read Only)</h2>
-
-      <div class="kpis">
-        <div class="kpi"><div class="label">Total Monthly Fixed Costs</div><div class="val mono" id="bp_fixed">$0.00</div></div>
-        <div class="kpi"><div class="label">Required Monthly Revenue</div><div class="val mono" id="bp_required">$0.00</div></div>
-        <div class="kpi"><div class="label">OTR Rate / Mile (Monthly Miles)</div><div class="val mono" id="bp_otr_rpm">$0.00</div></div>
-        <div class="kpi"><div class="label">Local Rate / Mile (6,000 miles)</div><div class="val mono" id="bp_local_rpm">$0.00</div></div>
-        <div class="kpi"><div class="label">Hourly Wage While Away</div><div class="val mono" id="bp_hourly">$0.00</div></div>
-      </div>
-
-      <div class="small">
-        Calculated from your Blueprint Settings in ⚙️ Settings.
-      </div>
-    </div>
-  </section>
-
-  <!-- INVOICES -->
-  <section id="tab-invoices" class="grid hide">
-    <div class="card">
-      <h2>Invoices</h2>
-      <div class="small">Pick a saved trip, preview the invoice, then print (or “Save as PDF”).</div>
-
-      <div class="row">
-        <label>Select Trip / Load
-          <select id="inv_trip"></select>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Invoice Date (optional override)
-          <input id="inv_date" type="date" />
-        </label>
-        <label>Invoice # (optional override)
-          <input id="inv_number" placeholder="auto" />
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="primary" id="btn_inv_preview">🧾 Build Preview</button>
-        <button type="button" class="good" id="btn_inv_print">🖨️ Print / Save PDF</button>
-      </div>
-
-      <div class="hr"></div>
-      <div id="invoicePreview" class="invoicePaper">
-        <div class="invMuted">No invoice selected yet.</div>
-      </div>
-
-      <div class="hr"></div>
-      <div class="small">
-        Tip: On iPhone/Android, use the browser share/print options to save as PDF.
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>What prints</h2>
-      <div class="small">
-        Print now shows ONLY the invoice preview. (No header, no tabs, no “app” junk.)
-      </div>
-    </div>
-  </section>
-
-  <!-- SETTINGS -->
-  <section id="tab-settings" class="grid hide">
-    <div class="card">
-      <h2>Dropdown Lists</h2>
-      <div class="small">Edit lists, then hit Save.</div>
-
-      <div class="row two">
-        <label>Companies (one per line)
-          <textarea id="s_companies"></textarea>
-        </label>
-        <label>Shippers (one per line)
-          <textarea id="s_shippers"></textarea>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Pickup/Delivery Locations (City, ST) one per line
-          <textarea id="s_locations"></textarea>
-        </label>
-        <label>Tire Sizes (one per line)
-          <textarea id="s_tires"></textarea>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Truck Numbers (one per line)
-          <textarea id="s_trucks"></textarea>
-        </label>
-        <label>Trailer Numbers (one per line)
-          <textarea id="s_trailers"></textarea>
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>Customers / Brokers (one per line)
-          <textarea id="s_customers"></textarea>
-        </label>
-        <label>Consignees (one per line)
-          <textarea id="s_consignees"></textarea>
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_save_lists">💾 Save Lists</button>
-        <button type="button" class="bad" id="btn_reset_lists">↩️ Reset Defaults</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Default Reserves & Rates</h2>
-      <div class="small">These feed auto-calcs for every trip. You can override per trip.</div>
-
-      <div class="row three">
-        <label>Tire Reserve ($ per mile)
-          <input id="r_tires" type="number" min="0" step="0.001" />
-        </label>
-        <label>Maintenance Reserve ($ per mile)
-          <input id="r_maint" type="number" min="0" step="0.001" />
-        </label>
-        <label>Plates Reserve ($ per mile)
-          <input id="r_plates" type="number" min="0" step="0.001" />
-        </label>
-      </div>
-      <div class="row three">
-        <label>IFTA Reserve ($ per mile) (estimate)
-          <input id="r_ifta" type="number" min="0" step="0.001" />
-        </label>
-        <label>Tax Reserve (% of revenue)
-          <input id="r_tax_pct" type="number" min="0" step="0.1" />
-        </label>
-        <label>Target MPG (for estimates if gallons missing)
-          <input id="r_mpg" type="number" min="1" step="0.1" />
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_save_rates">💾 Save Rates</button>
-      </div>
-
-      <div class="hr"></div>
-      <div class="dangerBox">
-        <b>IFTA note:</b> Real IFTA requires miles + gallons by jurisdiction. This app uses a reserve estimate so you don’t get wrecked later.
-      </div>
-    </div>
-
-    <!-- Blueprint Settings Card -->
-    <div class="card">
-      <h2>Owner Operator Financial Blueprint (Settings)</h2>
-
-      <h3 style="margin:10px 0 0;font-size:13px;color:var(--muted)">Household Monthly Expenses</h3>
-      <div class="row two">
-        <label>House Payment <input id="hh_house" type="number" value="1500"></label>
-        <label>Utilities <input id="hh_utils" type="number" value="500"></label>
-        <label>Car Payment <input id="hh_car" type="number" value="500"></label>
-        <label>Groceries <input id="hh_food" type="number" value="700"></label>
-        <label>Gas / Household Fuel <input id="hh_gas" type="number" value="400"></label>
-      </div>
-
-      <h3 style="margin:10px 0 0;font-size:13px;color:var(--muted)">Business Monthly Expenses</h3>
-      <div class="row two">
-        <label>Truck Payment <input id="biz_truck" type="number" value="1500"></label>
-        <label>Trailer Payment <input id="biz_trailer" type="number" value="1100"></label>
-        <label>Insurance <input id="biz_ins" type="number" value="1500"></label>
-        <label>Business Phone <input id="biz_phone" type="number" value="150"></label>
-        <label>Parking <input id="biz_parking" type="number" value="300"></label>
-        <label>ELDs <input id="biz_eld" type="number" value="25"></label>
-        <label>Load Board <input id="biz_loadboard" type="number" value="169"></label>
-        <label>Driver Wage (Weekly) <input id="biz_driver_week" type="number" value="1000"></label>
-      </div>
-
-      <h3 style="margin:10px 0 0;font-size:13px;color:var(--muted)">Miles & Time</h3>
-      <div class="row two">
-        <label>Monthly Miles <input id="bp_month_miles" type="number" value="12500"></label>
-        <label>Yearly Miles <input id="bp_year_miles" type="number" value="144000"></label>
-        <label>Days Away / Week <input id="bp_days" type="number" value="2"></label>
-        <label>Hours per Load <input id="bp_hours" type="number" value="10"></label>
-      </div>
-
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_blueprint_save">💾 Save Blueprint</button>
-      </div>
-
-      <div class="small">
-        Save here, view results in 📊 Dashboard.
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Budget Categories</h2>
-      <div class="small">One per line.</div>
-      <textarea id="s_budget_cats"></textarea>
-      <div class="btnRow">
-        <button type="button" class="good" id="btn_save_budget_cats">💾 Save Categories</button>
-      </div>
-
-      <div class="hr"></div>
-      <button type="button" class="bad" id="btn_nuke">🧨 Delete ALL Data (Danger)</button>
-      <div class="small">This wipes trips, budget, goals. There is no undo.</div>
-    </div>
-  </section>
-</main>
-
-<div id="toast" class="toast hide">Saved.</div>
-
-<script type="text/javascript">
-  console.log("SCRIPT START");
-
-  function setStatus(text){
-    const pill = document.getElementById("statusPill");
-    if(pill) pill.textContent = text;
-  }
-  window.addEventListener("error", (e)=>{
-    console.error("JS Error:", e?.error || e?.message || e);
-    setStatus("❌ Error (open Console)");
-  });
-  window.addEventListener("unhandledrejection", (e)=>{
-    console.error("Unhandled Promise Rejection:", e?.reason || e);
-    setStatus("❌ Error (open Console)");
-  });
-
-  document.addEventListener("DOMContentLoaded", () => {
-    try {
-      if (typeof structuredClone !== "function") {
-        window.structuredClone = (obj) => JSON.parse(JSON.stringify(obj));
-      }
-      if (!window.crypto) window.crypto = {};
-      if (typeof window.crypto.randomUUID !== "function") {
-        window.crypto.randomUUID = () => {
-          return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-            const r = (Math.random() * 16) | 0;
-            const v = c === "x" ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-          });
-        };
-      }
-
-      const LS_KEY = "truckBudgetTracker.v1";
-      const money = (n)=> (isFinite(n) ? n : 0);
-      const fmtMoney = (n)=> "$" + money(n).toFixed(2);
-      const fmtNum = (n)=> (isFinite(n) ? n : 0).toLocaleString();
-
-      const defaults = {
-        lists: {
-          companies: ["Select…","ACME Logistics","Blue River Transport"],
-          shippers: ["Select…","Amazon","Walmart DC","Target DC"],
-          locations: ["Select…","Atlanta, GA","Dallas, TX","Chicago, IL","Newark, NJ"],
-          tires: ["Select…","22.5","24.5","11R22.5"],
-          trucks: ["Select…","101","102","103"],
-          trailers: ["Select…","T-201","T-202","T-203"],
-          budgetCats: [
-            "Household expenses","Groceries","Entertainment","Mortgage/Rent",
-            "Car note","Utilities","Phone/Internet","Insurance","Gas/Transportation",
-            "Personal","Savings","Medical"
+        // NEW
+        ownerop: {
+          // Editable “lists” for Owner-Op Additions
+          householdItems: [
+            { id: crypto.randomUUID(), name: "House Payment", amt: 1500 },
+            { id: crypto.randomUUID(), name: "Utilities", amt: 500 },
+            { id: crypto.randomUUID(), name: "Car Payment", amt: 500 },
+            { id: crypto.randomUUID(), name: "Groceries", amt: 700 },
+            { id: crypto.randomUUID(), name: "Car Gas", amt: 400 },
+            { id: crypto.randomUUID(), name: "Entertainment", amt: 0 }
           ],
-          customers: ["Select…","CH Robinson","TQL","JB Hunt"],
-          consignees: ["Select…","Walmart DC","Amazon FC","Costco DC"]
-        },
-        rates: {
-          tiresPerMile: 0.05,
-          maintPerMile: 0.12,
-          platesPerMile: 0.02,
-          iftaPerMile: 0.03,
-          taxPctRevenue: 22,
-          targetMPG: 6.5
-        },
-        blueprint: {
-          household: { house:1500, utils:500, car:500, food:700, gas:400 },
-          business: { truck:1500, trailer:1100, ins:1500, phone:150, parking:300, eld:25, loadboard:169, driverWeek:1000 },
-          miles: { month:12500, year:144000, daysAway:2, hoursPerLoad:10 }
-        },
-        goals: { bizMonthly: 0, personalMonthly: 0 },
-        trips: [],
-        budget: {}
+          businessItems: [
+            { id: crypto.randomUUID(), name: "Truck Payment", amt: 1500 },
+            { id: crypto.randomUUID(), name: "Trailer Payment", amt: 1100 },
+            { id: crypto.randomUUID(), name: "Insurance", amt: 1500 },
+            { id: crypto.randomUUID(), name: "Business Phone", amt: 150 },
+            { id: crypto.randomUUID(), name: "Parking", amt: 300 },
+            { id: crypto.randomUUID(), name: "ELDs", amt: 25 },
+            { id: crypto.randomUUID(), name: "Load Board", amt: 169 }
+          ],
+
+          // Reserve % taken from revenue + caps
+          reserves: [
+            { id: "factoring", name: "Factoring Fee", pct: 3.0, cap: 0, continueAfterCap: true, enabled: true },
+            { id: "hwy", name: "Heavy Highway Use Tax", pct: 0.0, cap: 0, continueAfterCap: false, enabled: true },
+            { id: "usdot", name: "USDOT Reserve", pct: 0.0, cap: 0, continueAfterCap: false, enabled: true }
+          ],
+
+          // “Guide” dropdown (read-only on dashboard). You can expand this later.
+          guides: [
+            {
+              id: "default",
+              name: "Default Blueprint (This Phone)",
+              note: "Uses your saved Blueprint + Owner-Op Additions."
+            }
+          ],
+
+          // Caps progress by year: { "2026": { "factoring": 1200.55, ... } }
+          capsByYear: {}
+        }
       };
 
+      const blankState = () => ({
+        lists: structuredClone(defaults.lists),
+        rates: structuredClone(defaults.rates),
+        blueprint: structuredClone(defaults.blueprint),
+        ownerop: structuredClone(defaults.ownerop),
+        trips: [],
+        budget: { byMonth: {} }, // { "2026-01": { bufferPct, paychecks, withholdPct, otherIncome, items:[...] } }
+        goals: { bizMonthly: 0, personalMonthly: 0 }
+      });
+
       function loadState(){
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return blankState();
         try{
-          const raw = localStorage.getItem(LS_KEY);
-          if(!raw) return structuredClone(defaults);
           const parsed = JSON.parse(raw);
-          return {
-            ...structuredClone(defaults),
-            ...parsed,
-            lists: { ...structuredClone(defaults.lists), ...(parsed.lists||{}) },
-            rates: { ...structuredClone(defaults.rates), ...(parsed.rates||{}) },
-            blueprint: { ...structuredClone(defaults.blueprint), ...(parsed.blueprint||{}) },
-            goals: { ...structuredClone(defaults.goals), ...(parsed.goals||{}) },
-            trips: Array.isArray(parsed.trips) ? parsed.trips : [],
-            budget: parsed.budget || {}
-          };
-        } catch(e){
-          return structuredClone(defaults);
+          // Soft-merge with defaults so new fields don’t explode old saves
+          const st = blankState();
+          const merged = Object.assign(st, parsed || {});
+          merged.lists = Object.assign(st.lists, parsed?.lists || {});
+          merged.rates = Object.assign(st.rates, parsed?.rates || {});
+          merged.blueprint = Object.assign(st.blueprint, parsed?.blueprint || {});
+          merged.ownerop = Object.assign(st.ownerop, parsed?.ownerop || {});
+          merged.ownerop.capsByYear = Object.assign(st.ownerop.capsByYear, parsed?.ownerop?.capsByYear || {});
+          // Ensure arrays exist
+          merged.trips = Array.isArray(parsed?.trips) ? parsed.trips : [];
+          merged.budget = parsed?.budget?.byMonth ? parsed.budget : { byMonth: {} };
+          merged.goals = Object.assign(st.goals, parsed?.goals || {});
+          return merged;
+        }catch(e){
+          console.warn("State parse failed, resetting", e);
+          return blankState();
         }
       }
-      function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+      function saveState(){
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+      }
+
       let state = loadState();
 
+      // ---------- DOM helpers ----------
       const $ = (id)=> document.getElementById(id);
-
-      function on(id, event, fn){
-        const el = $(id);
-        if(!el){
-          console.warn("Missing element:", "#" + id);
-          return;
-        }
-        el.addEventListener(event, fn);
-      }
-
-      function toast(msg){
+      const toast = (msg="Saved.")=>{
         const t = $("toast");
         if(!t) return;
         t.textContent = msg;
         t.classList.remove("hide");
-        setTimeout(()=> t.classList.add("hide"), 1700);
-      }
+        setTimeout(()=> t.classList.add("hide"), 1400);
+      };
+
+      const safeVal = (el)=> (el && typeof el.value === "string") ? el.value.trim() : "";
+      const numVal = (el)=> {
+        const v = parseFloat(safeVal(el));
+        return isFinite(v) ? v : 0;
+      };
+
+      const todayISO = ()=> new Date().toISOString().slice(0,10);
 
       function fillSelect(selectEl, arr){
         if(!selectEl) return;
         selectEl.innerHTML = "";
-        (arr || []).forEach(v=>{
+        (arr||[]).forEach((x)=>{
           const opt = document.createElement("option");
-          opt.value = v;
-          opt.textContent = v;
+          opt.value = x;
+          opt.textContent = x;
           selectEl.appendChild(opt);
         });
       }
 
-      function todayISO(){
-        const d = new Date();
-        const off = d.getTimezoneOffset();
-        const local = new Date(d.getTime() - off*60000);
-        return local.toISOString().slice(0,10);
-      }
-
-      function ensureSelect(arr){
-        if(arr[0] !== "Select…") arr.unshift("Select…");
-        return arr;
-      }
-      function escapeHtml(s){
-        return String(s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
-      }
-
-      document.querySelectorAll(".tab").forEach(tab=>{
-        tab.addEventListener("click", ()=>{
-          document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-          tab.classList.add("active");
-          const name = tab.dataset.tab;
-
-          ["trips","budget","dashboard","invoices","settings"].forEach(n=>{
-            const sec = $("tab-"+n);
-            if(sec) sec.classList.toggle("hide", n!==name);
-          });
-
-          if(name==="dashboard") refreshDashboard();
-          if(name==="settings") loadSettingsUI();
-          if(name==="budget") loadBudgetUI();
-          if(name==="trips") renderTrips();
-          if(name==="invoices") loadInvoicesUI();
+      function fillDatalist(dlEl, arr){
+        if(!dlEl) return;
+        dlEl.innerHTML = "";
+        (arr||[]).filter((x)=> x && x !== "Select…").forEach((x)=>{
+          const opt = document.createElement("option");
+          opt.value = x;
+          dlEl.appendChild(opt);
         });
+      }
+
+      function ensureListItem(listName, value){
+        const v = (value||"").trim();
+        if(!v || v.toLowerCase() === "select…") return;
+        const arr = state.lists[listName] || [];
+        if(!arr.includes(v)){
+          arr.push(v);
+          state.lists[listName] = arr;
+          saveState();
+        }
+      }
+
+      // ---------- Tabs ----------
+      function setTab(name){
+        document.querySelectorAll(".tab").forEach(t=>{
+          t.classList.toggle("active", t.dataset.tab === name);
+        });
+        document.querySelectorAll("main section[id^='tab-']").forEach(sec=>{
+          sec.classList.toggle("hide", sec.id !== "tab-" + name);
+        });
+        if(name === "invoices") refreshInvoiceTripDropdown();
+        if(name === "dashboard") refreshDashboardYearDropdown();
+        if(name === "settings") loadSettingsUI();
+      }
+
+      document.querySelectorAll(".tab").forEach(t=>{
+        t.addEventListener("click", ()=> setTab(t.dataset.tab));
       });
 
-      function loadTripDropdowns(){
+      // ---------- Populate dropdowns ----------
+      function refreshDropdowns(){
         fillSelect($("t_company"), state.lists.companies);
         fillSelect($("t_shipper"), state.lists.shippers);
         fillSelect($("t_pickup"), state.lists.locations);
@@ -958,976 +158,1310 @@
         fillSelect($("t_trailer"), state.lists.trailers);
         fillSelect($("t_customer"), state.lists.customers);
         fillSelect($("t_consignee"), state.lists.consignees);
-      }
 
-      function readTripForm(){
-        const loaded = money(parseFloat($("t_loaded_miles")?.value));
-        const deadhead = money(parseFloat($("t_deadhead_miles")?.value));
-        const miles = loaded + deadhead;
+        fillDatalist($("dl_shippers"), state.lists.shippers);
+        fillDatalist($("dl_consignees"), state.lists.consignees);
 
-        const revenue = money(parseFloat($("t_revenue")?.value));
-        const gal = money(parseFloat($("t_fuel_gal")?.value));
-        const cpg = money(parseFloat($("t_fuel_cpg")?.value));
-        const fuelCost = gal * cpg;
+        fillSelect($("b_cat"), ["Select…", ...(state.lists.budgetCats||[]).filter(x=>x!=="Select…")]);
 
-        const tolls = money(parseFloat($("t_tolls")?.value));
-        const other = money(parseFloat($("t_other")?.value));
+        // Quote box dropdowns
+        fillSelect($("q_broker"), state.lists.customers);
+        fillSelect($("q_pickup"), state.lists.locations);
+        fillSelect($("q_delivery"), state.lists.locations);
 
-        const autoTires = miles * state.rates.tiresPerMile;
-        const autoMaint = miles * state.rates.maintPerMile;
-        const autoPlates = miles * state.rates.platesPerMile;
-        const autoIFTA  = miles * state.rates.iftaPerMile;
-        const autoTax   = revenue * (state.rates.taxPctRevenue/100);
-
-        const resTires = ($("t_res_tires")?.value || "").trim()==="" ? autoTires : money(parseFloat($("t_res_tires").value));
-        const resMaint = ($("t_res_maint")?.value || "").trim()==="" ? autoMaint : money(parseFloat($("t_res_maint").value));
-        const resPlates= ($("t_res_plates")?.value||"").trim()==="" ? autoPlates: money(parseFloat($("t_res_plates").value));
-        const resIFTA  = ($("t_res_ifta")?.value||"").trim()==="" ? autoIFTA  : money(parseFloat($("t_res_ifta").value));
-        const resTax   = ($("t_res_tax")?.value||"").trim()===""  ? autoTax   : money(parseFloat($("t_res_tax").value));
-
-        let mpg = 0;
-        if(gal>0 && miles>0) mpg = miles / gal;
-        else if(miles>0) mpg = state.rates.targetMPG;
-
-        const totalExpenses = fuelCost + tolls + other + resTires + resMaint + resPlates + resIFTA + resTax;
-        const net = revenue - totalExpenses;
-
-        return {
-          date: $("t_date")?.value || todayISO(),
-          company: $("t_company")?.value,
-          truck: $("t_truck")?.value,
-          trailer: $("t_trailer")?.value,
-          tireSize: $("t_tire")?.value,
-          shipper: $("t_shipper")?.value,
-          ref: ($("t_ref")?.value || "").trim(),
-          pickup: $("t_pickup")?.value,
-          pickupAddr: ($("t_pickup_addr")?.value || "").trim(),
-          delivery: $("t_delivery")?.value,
-          deliveryAddr: ($("t_delivery_addr")?.value || "").trim(),
-          customer: $("t_customer")?.value,
-          consignee: $("t_consignee")?.value,
-          loadedMiles: loaded,
-          deadheadMiles: deadhead,
-          totalMiles: miles,
-          revenue,
-          fuelGallons: gal,
-          fuelCostPerGallon: cpg,
-          fuelCost,
-          tolls,
-          other,
-          reserves: { tires:resTires, maint:resMaint, plates:resPlates, ifta:resIFTA, tax:resTax },
-          totals: { totalExpenses, net, mpg },
-          notes: ($("t_notes")?.value || "").trim(),
-          id: crypto.randomUUID()
-        };
-      }
-
-      function updateTripKPIs(t){
-        if($("k_total_miles")) $("k_total_miles").textContent = fmtNum(t.totalMiles);
-        if($("k_fuel_cost")) $("k_fuel_cost").textContent = fmtMoney(t.fuelCost);
-        if($("k_mpg")) $("k_mpg").textContent = (t.totals.mpg||0).toFixed(2);
-        const netEl = $("k_net");
-        if(netEl){
-          netEl.textContent = fmtMoney(t.totals.net);
-          netEl.classList.remove("good","bad","warn");
-          netEl.classList.add(t.totals.net>=0 ? "good" : "bad");
+        // Blueprint guide
+        const guideSel = $("bp_guide");
+        if(guideSel){
+          guideSel.innerHTML = "";
+          (state.ownerop.guides||[]).forEach(g=>{
+            const opt = document.createElement("option");
+            opt.value = g.id;
+            opt.textContent = g.name;
+            guideSel.appendChild(opt);
+          });
         }
       }
 
+      // ---------- Core calculations ----------
+      function calcFuelCost(gal, cpg){
+        const g = money(gal);
+        const p = money(cpg) || money(state.rates.defaultFuelCPG);
+        return g * p;
+      }
+
+      function calcMPG(totalMiles, fuelGal){
+        const m = money(totalMiles);
+        const g = money(fuelGal);
+        if(g > 0) return m / g;
+        return money(state.rates.targetMPG) || 0;
+      }
+
+      function getCapsYear(){
+        const ySel = $("bp_caps_year");
+        const y = ySel ? safeVal(ySel) : "";
+        return y || String(new Date().getFullYear());
+      }
+
+      function ensureCapsYear(yearStr){
+        if(!state.ownerop.capsByYear[yearStr]) state.ownerop.capsByYear[yearStr] = {};
+        return state.ownerop.capsByYear[yearStr];
+      }
+
+      function reserveWithCap(yearStr, reserveId, desiredAmt, cap, continueAfterCap){
+        const y = ensureCapsYear(yearStr);
+        const funded = money(y[reserveId] || 0);
+        const capN = money(cap);
+        const want = money(desiredAmt);
+
+        if(capN <= 0){
+          // no cap
+          y[reserveId] = funded + want;
+          return want;
+        }
+
+        if(funded >= capN){
+          if(continueAfterCap){
+            y[reserveId] = funded + want;
+            return want;
+          }
+          return 0;
+        }
+
+        const remaining = capN - funded;
+        const applied = Math.min(remaining, want);
+        y[reserveId] = funded + applied;
+        return applied;
+      }
+
+      function autoReservesForTrip(trip){
+        const miles = money(trip.totalMiles);
+        const rev = money(trip.revenue);
+
+        // per-mile reserves
+        const tires = miles * money(state.rates.tiresPerMile);
+        const maint = miles * money(state.rates.maintPerMile);
+        const plates = miles * money(state.rates.platesPerMile);
+        const ifta = miles * money(state.rates.iftaPerMile);
+
+        // tax is % of revenue
+        const tax = rev * (money(state.rates.taxPctRevenue) / 100);
+
+        // % reserves + caps (yearly)
+        const yearStr = String((trip.date||"").slice(0,4) || new Date().getFullYear());
+        let pctRes = {};
+        (state.ownerop.reserves||[]).forEach(r=>{
+          if(!r.enabled) return;
+          const desired = rev * (money(r.pct) / 100);
+          const applied = reserveWithCap(yearStr, r.id, desired, r.cap, !!r.continueAfterCap);
+          pctRes[r.id] = applied;
+        });
+
+        return { tires, maint, plates, ifta, tax, pctRes };
+      }
+
+      function computeTripNumbers(){
+        const loaded = numVal($("t_loaded_miles"));
+        const dead = numVal($("t_deadhead_miles"));
+        const totalMiles = loaded + dead;
+
+        const fuelGal = numVal($("t_fuel_gal"));
+        const fuelCPG = numVal($("t_fuel_cpg")) || money(state.rates.defaultFuelCPG);
+
+        const fuelCost = calcFuelCost(fuelGal, fuelCPG);
+        $("t_fuel_cost").value = fuelCost ? fuelCost.toFixed(2) : "";
+
+        const mpg = calcMPG(totalMiles, fuelGal);
+
+        const revenue = numVal($("t_revenue"));
+        const tolls = numVal($("t_tolls"));
+        const other = numVal($("t_other"));
+
+        const hoursRoad = numVal($("t_hours_road")) || money(state.rates.defaultHoursRoad);
+
+        // Reserves: allow manual overrides if user typed something
+        const tempTrip = { date: safeVal($("t_date")) || todayISO(), totalMiles, revenue };
+        const auto = autoReservesForTrip(tempTrip);
+
+        const tiresR = safeVal($("t_res_tires")) ? numVal($("t_res_tires")) : auto.tires;
+        const maintR = safeVal($("t_res_maint")) ? numVal($("t_res_maint")) : auto.maint;
+        const platesR = safeVal($("t_res_plates")) ? numVal($("t_res_plates")) : auto.plates;
+        const iftaR = safeVal($("t_res_ifta")) ? numVal($("t_res_ifta")) : auto.ifta;
+        const taxR = safeVal($("t_res_tax")) ? numVal($("t_res_tax")) : auto.tax;
+
+        // Extra reserve boxes map to reserve ids, but still allow manual override
+        const factoringAuto = auto.pctRes["factoring"] || 0;
+        const hwyAuto = auto.pctRes["hwy"] || 0;
+        const usdotAuto = auto.pctRes["usdot"] || 0;
+
+        const factoringR = safeVal($("t_res_factoring")) ? numVal($("t_res_factoring")) : factoringAuto;
+        const hwyR = safeVal($("t_res_hwy")) ? numVal($("t_res_hwy")) : hwyAuto;
+        const usdotR = safeVal($("t_res_usdot")) ? numVal($("t_res_usdot")) : usdotAuto;
+
+        // total expenses
+        const totalExpenses =
+          fuelCost + tolls + other +
+          tiresR + maintR + platesR + iftaR + taxR +
+          factoringR + hwyR + usdotR;
+
+        const net = revenue - totalExpenses;
+        const otraff = hoursRoad > 0 ? (net / hoursRoad) : 0;
+
+        // KPIs
+        $("k_total_miles").textContent = fmtNum(totalMiles);
+        $("k_fuel_cost").textContent = fmtMoney(fuelCost);
+        $("k_mpg").textContent = (isFinite(mpg) ? mpg : 0).toFixed(2);
+        $("k_net").textContent = fmtMoney(net);
+        $("k_otraff").textContent = fmtMoney(otraff);
+
+        // Write autos into fields if they’re blank
+        if(!safeVal($("t_res_tires"))) $("t_res_tires").value = tiresR ? tiresR.toFixed(2) : "";
+        if(!safeVal($("t_res_maint"))) $("t_res_maint").value = maintR ? maintR.toFixed(2) : "";
+        if(!safeVal($("t_res_plates"))) $("t_res_plates").value = platesR ? platesR.toFixed(2) : "";
+        if(!safeVal($("t_res_ifta"))) $("t_res_ifta").value = iftaR ? iftaR.toFixed(2) : "";
+        if(!safeVal($("t_res_tax"))) $("t_res_tax").value = taxR ? taxR.toFixed(2) : "";
+
+        if(!safeVal($("t_res_factoring"))) $("t_res_factoring").value = factoringR ? factoringR.toFixed(2) : "";
+        if(!safeVal($("t_res_hwy"))) $("t_res_hwy").value = hwyR ? hwyR.toFixed(2) : "";
+        if(!safeVal($("t_res_usdot"))) $("t_res_usdot").value = usdotR ? usdotR.toFixed(2) : "";
+
+        return {
+          totalMiles, fuelCost, mpg, net, otraff,
+          reserves: { tiresR, maintR, platesR, iftaR, taxR, factoringR, hwyR, usdotR },
+          hoursRoad
+        };
+      }
+
+      // ---------- Trips ----------
+      function clearTripForm(){
+        $("t_date").value = todayISO();
+        ["t_company","t_truck","t_trailer","t_tire","t_shipper","t_pickup","t_delivery","t_customer","t_consignee"].forEach(id=>{
+          const el = $(id);
+          if(el) el.selectedIndex = 0;
+        });
+        ["t_shipper_auto","t_consignee_auto","t_ref","t_hours_road","t_pickup_addr","t_delivery_addr",
+         "t_loaded_miles","t_deadhead_miles","t_revenue","t_fuel_gal","t_fuel_cpg","t_fuel_cost",
+         "t_tolls","t_other","t_notes",
+         "t_res_tires","t_res_maint","t_res_plates","t_res_ifta","t_res_tax","t_res_factoring","t_res_hwy","t_res_usdot"
+        ].forEach(id=> { const el = $(id); if(el) el.value=""; });
+
+        $("k_total_miles").textContent = "0";
+        $("k_fuel_cost").textContent = "$0.00";
+        $("k_mpg").textContent = "0.00";
+        $("k_net").textContent = "$0.00";
+        $("k_otraff").textContent = "$0.00";
+      }
+
+      function saveTrip(){
+        // Save typed shipper/consignee into lists if present
+        ensureListItem("shippers", safeVal($("t_shipper_auto")));
+        ensureListItem("consignees", safeVal($("t_consignee_auto")));
+
+        // If user typed shipper/consignee, use it
+        const shipperTyped = safeVal($("t_shipper_auto"));
+        const consigneeTyped = safeVal($("t_consignee_auto"));
+
+        const nums = computeTripNumbers();
+
+        const trip = {
+          id: crypto.randomUUID(),
+          date: safeVal($("t_date")) || todayISO(),
+          company: safeVal($("t_company")),
+          truck: safeVal($("t_truck")),
+          trailer: safeVal($("t_trailer")),
+          tire: safeVal($("t_tire")),
+          shipper: shipperTyped || safeVal($("t_shipper")),
+          ref: safeVal($("t_ref")),
+          hoursRoad: nums.hoursRoad,
+          pickup: safeVal($("t_pickup")),
+          delivery: safeVal($("t_delivery")),
+          pickupAddr: safeVal($("t_pickup_addr")),
+          deliveryAddr: safeVal($("t_delivery_addr")),
+          customer: safeVal($("t_customer")),
+          consignee: consigneeTyped || safeVal($("t_consignee")),
+          calendar: safeVal($("t_calendar")),
+
+          loadedMiles: numVal($("t_loaded_miles")),
+          deadheadMiles: numVal($("t_deadhead_miles")),
+          totalMiles: nums.totalMiles,
+          revenue: numVal($("t_revenue")),
+
+          fuelGal: numVal($("t_fuel_gal")),
+          fuelCPG: numVal($("t_fuel_cpg")) || money(state.rates.defaultFuelCPG),
+          fuelCost: nums.fuelCost,
+
+          tolls: numVal($("t_tolls")),
+          other: numVal($("t_other")),
+          notes: safeVal($("t_notes")),
+
+          reserves: structuredClone(nums.reserves),
+          net: nums.net,
+          otraff: nums.otraff
+        };
+
+        state.trips.unshift(trip);
+        saveState();
+        toast("Trip saved ✅");
+        renderTrips();
+        refreshInvoiceTripDropdown();
+      }
+
       function renderTrips(){
-        const q = (($("searchTrips")?.value)||"").toLowerCase().trim();
         const list = $("tripList");
         if(!list) return;
-        list.innerHTML = "";
+        const q = safeVal($("searchTrips")).toLowerCase();
 
         const filtered = state.trips.filter(t=>{
           if(!q) return true;
-          const blob = [
-            t.company,t.shipper,t.pickup,t.delivery,t.ref,t.notes,t.truck,t.trailer,
-            t.customer,t.consignee
+          const hay = [
+            t.date, t.company, t.shipper, t.pickup, t.delivery, t.ref, t.notes, t.customer, t.consignee
           ].join(" ").toLowerCase();
-          return blob.includes(q);
+          return hay.includes(q);
         });
 
-        if(filtered.length===0){
+        list.innerHTML = "";
+        if(filtered.length === 0){
           const div = document.createElement("div");
-          div.className="small";
-          div.textContent = state.trips.length===0 ? "No trips saved yet." : "No matches.";
+          div.className = "small";
+          div.textContent = "No trips found.";
           list.appendChild(div);
           return;
         }
 
-        filtered.slice(0,200).forEach(t=>{
+        filtered.forEach(trip=>{
           const item = document.createElement("div");
-          item.className="item";
+          item.className = "item";
 
           const top = document.createElement("div");
-          top.className="itemTop";
-          top.innerHTML = `
-            <div>
-              <div class="itemTitle"><b>${escapeHtml(t.company)}</b> · ${escapeHtml(t.pickup)} → ${escapeHtml(t.delivery)}</div>
-              <div class="itemMeta mono">
-                ${escapeHtml(t.date)}
-                · Truck ${escapeHtml(t.truck)} / Trailer ${escapeHtml(t.trailer)}
-                ${t.ref ? " · Ref " + escapeHtml(t.ref) : ""}
-              </div>
-            </div>
-            <div class="btnRow" style="margin-top:0">
-              <button type="button" data-act="invoice" data-id="${escapeHtml(t.id)}">🧾 Invoice</button>
-              <button type="button" class="bad" data-act="delete" data-id="${escapeHtml(t.id)}">🗑️ Delete</button>
-            </div>
-          `;
+          top.className = "itemTop";
+
+          const left = document.createElement("div");
+          const title = document.createElement("div");
+          title.className = "itemTitle";
+          title.innerHTML = `<b>${trip.pickup || "?"}</b> → <b>${trip.delivery || "?"}</b> <span class="small">(${trip.date})</span>`;
+          const meta = document.createElement("div");
+          meta.className = "itemMeta";
+          meta.textContent = `${trip.company || ""} • ${trip.shipper || ""} • ${trip.ref ? ("Ref: " + trip.ref) : "No ref"}`;
+          left.appendChild(title);
+          left.appendChild(meta);
+
+          const right = document.createElement("div");
+          right.className = "btnRow";
+          right.style.marginTop = "0";
+          const btnDel = document.createElement("button");
+          btnDel.className = "bad";
+          btnDel.type = "button";
+          btnDel.textContent = "🗑️ Delete";
+          btnDel.addEventListener("click", ()=>{
+            if(!confirm("Delete this trip?")) return;
+            state.trips = state.trips.filter(x=> x.id !== trip.id);
+            saveState();
+            renderTrips();
+            refreshInvoiceTripDropdown();
+            toast("Deleted.");
+          });
+
+          right.appendChild(btnDel);
+
+          top.appendChild(left);
+          top.appendChild(right);
 
           const nums = document.createElement("div");
-          nums.className="itemNums mono";
+          nums.className = "itemNums mono";
           nums.innerHTML = `
-            <div>Miles: <b>${fmtNum(t.totalMiles)}</b></div>
-            <div>Revenue: <b>${fmtMoney(t.revenue)}</b></div>
-            <div>Expenses: <b>${fmtMoney(t.totals?.totalExpenses||0)}</b></div>
-            <div>Net: <b style="color:${(t.totals?.net||0)>=0 ? "var(--good)" : "var(--bad)"}">${fmtMoney(t.totals?.net||0)}</b></div>
+            <div>Miles: <b>${fmtNum(trip.totalMiles)}</b></div>
+            <div>Rev: <b>${fmtMoney(trip.revenue)}</b></div>
+            <div>Fuel: <b>${fmtMoney(trip.fuelCost)}</b></div>
+            <div>Net: <b>${fmtMoney(trip.net)}</b></div>
           `;
 
           item.appendChild(top);
           item.appendChild(nums);
-
-          item.addEventListener("click", (e)=>{
-            const btn = e.target.closest("button");
-            if(!btn) return;
-            e.stopPropagation();
-            const act = btn.dataset.act;
-            const id = btn.dataset.id;
-            if(act==="delete") deleteTrip(id);
-            if(act==="invoice") {
-              document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-              document.querySelector('.tab[data-tab="invoices"]')?.classList.add("active");
-              ["trips","budget","dashboard","invoices","settings"].forEach(n=>{
-                const sec = $("tab-"+n);
-                if(sec) sec.classList.toggle("hide", n!=="invoices");
-              });
-              loadInvoicesUI(id);
-            }
-          });
-
           list.appendChild(item);
         });
       }
 
-      function clearTripForm(){
-        [
-          "t_date","t_company","t_truck","t_trailer","t_tire","t_shipper","t_ref",
-          "t_pickup","t_pickup_addr","t_delivery","t_delivery_addr",
-          "t_customer","t_consignee",
-          "t_loaded_miles","t_deadhead_miles","t_revenue","t_fuel_gal","t_fuel_cpg","t_tolls","t_other",
-          "t_res_tires","t_res_maint","t_res_plates","t_res_ifta","t_res_tax","t_notes"
-        ].forEach(id=>{
-          const el = $(id);
-          if(!el) return;
-          if(el.tagName==="SELECT") el.selectedIndex = 0;
-          else el.value = "";
-        });
-        $("t_date").value = todayISO();
-        updateTripKPIs(readTripForm());
-      }
-
-      function deleteTrip(id){
-        const idx = state.trips.findIndex(t=>t.id===id);
-        if(idx<0) return;
-        if(!confirm("Delete this trip? This cannot be undone.")) return;
-        state.trips.splice(idx,1);
-        saveState();
-        toast("Deleted.");
-        renderTrips();
-        loadInvoicesUI();
-        refreshDashboard();
-      }
-
-      function calcTrip(){
-        const t = readTripForm();
-        updateTripKPIs(t);
-        return t;
-      }
-
-      function saveTrip(){
-        const t = calcTrip();
-
-        // Guard against saving "Select…" placeholders
-        const required = [
-          ["company", t.company],
-          ["truck", t.truck],
-          ["trailer", t.trailer],
-          ["shipper", t.shipper],
-          ["pickup", t.pickup],
-          ["delivery", t.delivery],
-          ["customer", t.customer],
-          ["consignee", t.consignee],
-        ];
-
-        const bad = required.filter(([k,v])=>!v || v==="Select…");
-        if(bad.length){
-          toast("Missing: " + bad.map(b=>b[0]).join(", "));
-          return;
-        }
-
-        state.trips.unshift(t);
-        // cap to keep localStorage from exploding
-        if(state.trips.length>3000) state.trips.length = 3000;
-
-        saveState();
-        toast("Trip saved.");
-        renderTrips();
-        loadInvoicesUI(t.id);
-        refreshDashboard();
-      }
-
-      // =========================
-      // Budget
-      // =========================
-      function budgetKey(month){
-        return month || $("b_month")?.value || "";
-      }
-
-      function ensureBudgetMonth(key){
-        if(!key) return null;
-        if(!state.budget[key]) state.budget[key] = { bufferPct: 15, paychecks: 2, withholdPct: 20, otherIncome: 0, expenses: [] };
-        const m = state.budget[key];
-        if(!Array.isArray(m.expenses)) m.expenses = [];
-        return m;
-      }
-
-      function loadBudgetUI(){
-        // populate categories
-        fillSelect($("b_cat"), ensureSelect([...(state.lists.budgetCats||[])]));
-        if($("b_month") && !$("b_month").value){
-          const d = new Date();
-          $("b_month").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-        }
-
-        const key = budgetKey();
-        const m = ensureBudgetMonth(key);
-        if(!m) return;
-
-        if($("b_buffer")) $("b_buffer").value = m.bufferPct ?? 15;
-        if($("b_paychecks")) $("b_paychecks").value = String(m.paychecks ?? 2);
-        if($("b_withhold")) $("b_withhold").value = m.withholdPct ?? 20;
-        if($("b_other_income")) $("b_other_income").value = (m.otherIncome ?? 0);
-
-        renderBudgetList();
-        budgetCalc();
-      }
-
-      function renderBudgetList(){
-        const key = budgetKey();
-        const m = ensureBudgetMonth(key);
-        const list = $("budgetList");
-        if(!list || !m) return;
-
-        list.innerHTML = "";
-        if(m.expenses.length===0){
-          const div = document.createElement("div");
-          div.className="small";
-          div.textContent = "No expenses added for this month yet.";
-          list.appendChild(div);
-          return;
-        }
-
-        m.expenses.slice().reverse().forEach(exp=>{
-          const item = document.createElement("div");
-          item.className = "item";
-          item.innerHTML = `
-            <div class="itemTop">
-              <div>
-                <div class="itemTitle"><b>${escapeHtml(exp.category||"")}</b> · ${escapeHtml(exp.note||"")}</div>
-                <div class="itemMeta mono">${escapeHtml(exp.date||"")}</div>
-              </div>
-              <div class="btnRow" style="margin-top:0">
-                <button type="button" class="bad" data-id="${escapeHtml(exp.id)}">🗑️ Delete</button>
-              </div>
-            </div>
-            <div class="itemNums mono">
-              <div>Amount: <b>${fmtMoney(exp.amount||0)}</b></div>
-            </div>
-          `;
-          item.querySelector("button")?.addEventListener("click", ()=>{
-            if(!confirm("Delete this expense?")) return;
-            const idx = m.expenses.findIndex(x=>x.id===exp.id);
-            if(idx>=0) m.expenses.splice(idx,1);
-            saveState();
-            toast("Deleted.");
-            renderBudgetList();
-            budgetCalc();
-            refreshDashboard();
-          });
-          list.appendChild(item);
-        });
-      }
-
-      function addExpense(){
-        const key = budgetKey();
-        const m = ensureBudgetMonth(key);
-        if(!m){ toast("Pick a month."); return; }
-
-        const cat = $("b_cat")?.value;
-        if(!cat || cat==="Select…"){ toast("Pick a category."); return; }
-
-        const amt = money(parseFloat($("b_amt")?.value));
-        if(!(amt>0)){ toast("Enter an amount."); return; }
-
-        const exp = {
-          id: crypto.randomUUID(),
-          category: cat,
-          amount: amt,
-          note: ($("b_note")?.value || "").trim(),
-          date: new Date().toISOString().slice(0,10)
-        };
-
-        // Save settings that live in month record
-        m.bufferPct = money(parseFloat($("b_buffer")?.value)) || 0;
-        m.paychecks = parseInt($("b_paychecks")?.value || "2",10);
-        m.withholdPct = money(parseFloat($("b_withhold")?.value)) || 0;
-        m.otherIncome = money(parseFloat($("b_other_income")?.value)) || 0;
-
-        m.expenses.push(exp);
-        saveState();
-        toast("Added.");
-        $("b_amt").value = "";
-        $("b_note").value = "";
-        renderBudgetList();
-        budgetCalc();
-        refreshDashboard();
-      }
-
-      function budgetCalc(){
-        const key = budgetKey();
-        const m = ensureBudgetMonth(key);
-        if(!m) return;
-
-        // sync UI -> month model
-        m.bufferPct = money(parseFloat($("b_buffer")?.value)) || 0;
-        m.paychecks = parseInt($("b_paychecks")?.value || "2",10);
-        m.withholdPct = money(parseFloat($("b_withhold")?.value)) || 0;
-        m.otherIncome = money(parseFloat($("b_other_income")?.value)) || 0;
-
-        const total = m.expenses.reduce((s,x)=> s + money(x.amount), 0);
-        const buffer = total * (m.bufferPct/100);
-        const neededNet = total + buffer - m.otherIncome;
-        const withholdFactor = 1 - (m.withholdPct/100);
-        const neededGross = withholdFactor>0 ? (neededNet / withholdFactor) : neededNet;
-
-        const perCheckGross = (m.paychecks>0) ? (neededGross / m.paychecks) : neededGross;
-
-        if($("k_b_total")) $("k_b_total").textContent = fmtMoney(total);
-        if($("k_b_gross")) $("k_b_gross").textContent = fmtMoney(neededGross);
-        if($("k_b_percheck")) $("k_b_percheck").textContent = fmtMoney(perCheckGross);
-        if($("k_b_net")) $("k_b_net").textContent = fmtMoney(neededNet);
-
-        saveState();
-      }
-
-      function clearBudgetMonth(){
-        const key = budgetKey();
-        if(!key){ toast("Pick a month."); return; }
-        if(!confirm("Clear ALL expenses for this month?")) return;
-        state.budget[key] = { bufferPct: 15, paychecks: 2, withholdPct: 20, otherIncome: 0, expenses: [] };
-        saveState();
-        toast("Cleared.");
-        loadBudgetUI();
-        refreshDashboard();
-      }
-
-      // =========================
-      // Goals
-      // =========================
-      function saveGoals(){
-        state.goals.bizMonthly = money(parseFloat($("g_biz")?.value));
-        state.goals.personalMonthly = money(parseFloat($("g_personal")?.value));
-        saveState();
-        const msg = $("goalMsg");
-        if(msg) msg.textContent = "Saved.";
-        toast("Goals saved.");
-        refreshDashboard();
-      }
-
-      function loadGoalsUI(){
-        if($("g_biz")) $("g_biz").value = state.goals.bizMonthly || 0;
-        if($("g_personal")) $("g_personal").value = state.goals.personalMonthly || 0;
-      }
-
-      // =========================
-      // Dashboard
-      // =========================
-      function yearsFromTrips(){
-        const ys = new Set();
-        state.trips.forEach(t=>{
-          const y = (t.date||"").slice(0,4);
-          if(y) ys.add(y);
-        });
-        const now = new Date().getFullYear();
-        ys.add(String(now));
-        return Array.from(ys).sort((a,b)=>b.localeCompare(a));
-      }
-
-      function setDashboardYears(){
-        const sel = $("d_year");
-        if(!sel) return;
-        const ys = yearsFromTrips();
-        fillSelect(sel, ys);
-        if(!sel.value) sel.value = String(new Date().getFullYear());
-      }
-
-      function tripsFilteredForDashboard(){
-        const y = $("d_year")?.value;
-        const monthFilter = $("d_month")?.value; // YYYY-MM or empty
-        return state.trips.filter(t=>{
-          if(y && (t.date||"").slice(0,4) !== y) return false;
-          if(monthFilter && (t.date||"").slice(0,7) !== monthFilter) return false;
-          return true;
-        });
-      }
-
-      function refreshDashboard(){
-        setDashboardYears();
-        loadGoalsUI();
-        calcBlueprintAndShow(); // blueprint lives in dashboard card too
-
-        const trips = tripsFilteredForDashboard();
-        const rev = trips.reduce((s,t)=> s + money(t.revenue), 0);
-        const exp = trips.reduce((s,t)=> s + money(t.totals?.totalExpenses), 0);
-        const net = rev - exp;
-        const miles = trips.reduce((s,t)=> s + money(t.totalMiles), 0);
-
-        if($("d_rev")) $("d_rev").textContent = fmtMoney(rev);
-        if($("d_exp")) $("d_exp").textContent = fmtMoney(exp);
-        if($("d_net")) $("d_net").textContent = fmtMoney(net);
-        if($("d_miles")) $("d_miles").textContent = fmtNum(miles);
-
-        // Goals compare (monthly)
-        const goalBox = $("dashGoalBox");
-        const goalOk = $("dashGoalOk");
-        if(goalBox) goalBox.classList.add("hide");
-        if(goalOk) goalOk.classList.add("hide");
-
-        const monthFilter = $("d_month")?.value;
-        if(monthFilter){
-          const bizGoal = money(state.goals.bizMonthly);
-          const personalGoal = money(state.goals.personalMonthly);
-          const parts = [];
-
-          if(bizGoal>0){
-            const diff = rev - bizGoal;
-            parts.push(`Business goal: ${fmtMoney(bizGoal)} · Actual: ${fmtMoney(rev)} · ${diff>=0 ? "Ahead" : "Behind"} ${fmtMoney(Math.abs(diff))}`);
-          }
-          if(personalGoal>0){
-            // Personal goal uses NET as proxy here
-            const diff = net - personalGoal;
-            parts.push(`Personal goal: ${fmtMoney(personalGoal)} · Net: ${fmtMoney(net)} · ${diff>=0 ? "Ahead" : "Behind"} ${fmtMoney(Math.abs(diff))}`);
-          }
-
-          if(parts.length){
-            const ok = (bizGoal>0 ? rev>=bizGoal : true) && (personalGoal>0 ? net>=personalGoal : true);
-            if(ok && goalOk){
-              goalOk.textContent = "✅ Goals check: " + parts.join(" | ");
-              goalOk.classList.remove("hide");
-            } else if(goalBox){
-              goalBox.textContent = "⚠️ Goals check: " + parts.join(" | ");
-              goalBox.classList.remove("hide");
-            }
-          }
-        }
-
-        // Insights
-        const ins = $("insights");
-        if(ins){
-          ins.innerHTML = "";
-          if(trips.length===0){
-            const d = document.createElement("div");
-            d.className="small";
-            d.textContent="No trips in this view yet.";
-            ins.appendChild(d);
-          } else {
-            const avgRPM = miles>0 ? (rev/miles) : 0;
-            const avgEPM = miles>0 ? (exp/miles) : 0;
-            const avgNPM = miles>0 ? (net/miles) : 0;
-
-            const best = trips.slice().sort((a,b)=> (b.totals?.net||0) - (a.totals?.net||0))[0];
-            const worst= trips.slice().sort((a,b)=> (a.totals?.net||0) - (b.totals?.net||0))[0];
-
-            const cards = [
-              `Avg Revenue/mi: <b>${fmtMoney(avgRPM)}</b>`,
-              `Avg Expenses/mi: <b>${fmtMoney(avgEPM)}</b>`,
-              `Avg Net/mi: <b>${fmtMoney(avgNPM)}</b>`,
-              best ? `Best trip net: <b>${fmtMoney(best.totals?.net||0)}</b> · ${escapeHtml(best.pickup)} → ${escapeHtml(best.delivery)} (${escapeHtml(best.date)})` : "",
-              worst ? `Worst trip net: <b>${fmtMoney(worst.totals?.net||0)}</b> · ${escapeHtml(worst.pickup)} → ${escapeHtml(worst.delivery)} (${escapeHtml(worst.date)})` : "",
-            ].filter(Boolean);
-
-            cards.forEach(html=>{
-              const it = document.createElement("div");
-              it.className="item";
-              it.innerHTML = `<div class="small">${html}</div>`;
-              ins.appendChild(it);
-            });
-          }
-        }
-      }
-
-      // =========================
-      // Blueprint Calc (Settings -> Dashboard Readonly KPIs)
-      // =========================
-      function getBlueprint(){
-        return state.blueprint || structuredClone(defaults.blueprint);
-      }
-
-      function calcBlueprint(){
-        const bp = getBlueprint();
-
-        const hh = bp.household || {};
-        const bz = bp.business || {};
-        const mi = bp.miles || {};
-
-        const householdMonthly =
-          money(hh.house) + money(hh.utils) + money(hh.car) + money(hh.food) + money(hh.gas);
-
-        const businessMonthly =
-          money(bz.truck) + money(bz.trailer) + money(bz.ins) + money(bz.phone) +
-          money(bz.parking) + money(bz.eld) + money(bz.loadboard);
-
-        const driverMonthly = money(bz.driverWeek) * 4; // weekly -> approx monthly
-
-        const fixed = householdMonthly + businessMonthly + driverMonthly;
-
-        const monthMiles = Math.max(1, money(mi.month));
-        const yearMiles  = Math.max(1, money(mi.year));
-        const daysAway = Math.max(0, money(mi.daysAway));
-        const hoursPerLoad = Math.max(0, money(mi.hoursPerLoad));
-
-        const requiredMonthlyRevenue = fixed; // "break-even" baseline (not including variable costs)
-        const otrRPM = requiredMonthlyRevenue / monthMiles;
-
-        const localMiles = 6000;
-        const localRPM = requiredMonthlyRevenue / localMiles;
-
-        // hourly wage while away (super rough)
-        const weeksPerMonth = 4;
-        const hoursAwayPerWeek = daysAway * 24;
-        const hoursAwayPerMonth = hoursAwayPerWeek * weeksPerMonth;
-        const hourlyAway = hoursAwayPerMonth>0 ? (requiredMonthlyRevenue / hoursAwayPerMonth) : 0;
-
-        return { fixed, requiredMonthlyRevenue, otrRPM, localRPM, hourlyAway, monthMiles, yearMiles, daysAway, hoursPerLoad };
-      }
-
-      function calcBlueprintAndShow(){
-        const r = calcBlueprint();
-        if($("bp_fixed")) $("bp_fixed").textContent = fmtMoney(r.fixed);
-        if($("bp_required")) $("bp_required").textContent = fmtMoney(r.requiredMonthlyRevenue);
-        if($("bp_otr_rpm")) $("bp_otr_rpm").textContent = fmtMoney(r.otrRPM);
-        if($("bp_local_rpm")) $("bp_local_rpm").textContent = fmtMoney(r.localRPM);
-        if($("bp_hourly")) $("bp_hourly").textContent = fmtMoney(r.hourlyAway);
-      }
-
-      // =========================
-      // Invoices
-      // =========================
-      function loadInvoicesUI(preselectId){
-        const sel = $("inv_trip");
-        if(!sel) return;
-
-        const trips = state.trips.slice(); // newest first already
-        sel.innerHTML = "";
-        const opt0 = document.createElement("option");
-        opt0.value = "";
-        opt0.textContent = "Select…";
-        sel.appendChild(opt0);
-
-        trips.forEach(t=>{
-          const opt = document.createElement("option");
-          opt.value = t.id;
-          opt.textContent = `${t.date} · ${t.company} · ${t.pickup} → ${t.delivery}${t.ref ? " · " + t.ref : ""}`;
-          sel.appendChild(opt);
-        });
-
-        if(preselectId){
-          sel.value = preselectId;
-        }
-
-        // default invoice date
-        if($("inv_date") && !$("inv_date").value) $("inv_date").value = todayISO();
-
-        // if there's a selection, build preview
-        if(sel.value) buildInvoicePreview(sel.value);
-      }
-
-      function invoiceNumberForTrip(t){
-        // simple deterministic-ish number: YYYYMMDD + last 4 of id
-        const d = (t.date||todayISO()).replaceAll("-","");
-        const tail = (t.id||"").replaceAll("-","").slice(-4).toUpperCase();
-        return `${d}-${tail}`;
-      }
-
-      function buildInvoicePreview(tripId){
-        const t = state.trips.find(x=>x.id===tripId);
-        const box = $("invoicePreview");
-        if(!box){ return; }
-        if(!t){
-          box.innerHTML = `<div class="invMuted">No invoice selected yet.</div>`;
-          return;
-        }
-
-        const invDate = ($("inv_date")?.value || todayISO());
-        const invNo = (($("inv_number")?.value || "").trim()) || invoiceNumberForTrip(t);
-
-        const rows = [
-          ["Load / Ref #", t.ref || "—"],
-          ["Truck / Trailer", `${t.truck} / ${t.trailer}`],
-          ["Tire Size", t.tireSize || "—"],
-          ["Shipper", t.shipper || "—"],
-          ["Customer / Broker", t.customer || "—"],
-          ["Consignee", t.consignee || "—"],
-        ];
-
-        const miles = money(t.totalMiles);
-        const rate = money(t.revenue);
-
-        box.innerHTML = `
-          <div class="invoicePaper">
-            <div class="invTop">
-              <div>
-                <div class="invH">INVOICE</div>
-                <div class="invMuted">Invoice #: <b>${escapeHtml(invNo)}</b></div>
-                <div class="invMuted">Invoice Date: <b>${escapeHtml(invDate)}</b></div>
-              </div>
-              <div style="text-align:right">
-                <div class="invH" style="font-size:16px">${escapeHtml(t.company||"")}</div>
-                <div class="invMuted">Generated by Trucking Made Simple (offline app)</div>
-              </div>
-            </div>
-
-            <div class="invGrid2">
-              <div class="invBlock">
-                <div style="font-weight:700;margin-bottom:6px">Pickup</div>
-                <div>${escapeHtml(t.pickup||"")}</div>
-                <div class="invMuted">${escapeHtml(t.pickupAddr||"")}</div>
-                <div class="invMuted">Date: ${escapeHtml(t.date||"")}</div>
-              </div>
-              <div class="invBlock">
-                <div style="font-weight:700;margin-bottom:6px">Delivery</div>
-                <div>${escapeHtml(t.delivery||"")}</div>
-                <div class="invMuted">${escapeHtml(t.deliveryAddr||"")}</div>
-              </div>
-            </div>
-
-            <div class="invBlock">
-              <div style="font-weight:700;margin-bottom:6px">Load Details</div>
-              <table class="invTable">
-                <thead>
-                  <tr>
-                    <th>Description</th>
-                    <th class="invRight">Qty</th>
-                    <th class="invRight">Rate</th>
-                    <th class="invRight">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      Freight Haul: ${escapeHtml(t.pickup||"")} → ${escapeHtml(t.delivery||"")}
-                      ${t.notes ? `<div class="invMuted" style="margin-top:6px">Notes: ${escapeHtml(t.notes)}</div>` : ``}
-                    </td>
-                    <td class="invRight mono">${fmtNum(miles)}</td>
-                    <td class="invRight mono">${miles>0 ? fmtMoney(rate/miles) + "/mi" : "—"}</td>
-                    <td class="invRight mono"><b>${fmtMoney(rate)}</b></td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <div class="invMuted" style="margin-top:10px">
-                ${rows.map(([k,v])=>`<div><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</div>`).join("")}
-              </div>
-            </div>
-
-            <div class="invTotal">
-              <div class="invTotalBox">
-                <div class="invLine"><div>Subtotal</div><div class="mono">${fmtMoney(rate)}</div></div>
-                <div class="invLine"><div>Tax</div><div class="mono">${fmtMoney(0)}</div></div>
-                <div class="invLine invBig"><div>Total Due</div><div class="mono">${fmtMoney(rate)}</div></div>
-              </div>
-            </div>
-
-            <div class="invMuted" style="margin-top:10px">
-              Payment terms: Due upon receipt unless otherwise agreed.
-            </div>
-          </div>
-        `;
-
-        toast("Invoice preview built.");
-      }
-
-      function printInvoice(){
-        const sel = $("inv_trip");
-        if(!sel || !sel.value){
-          toast("Select a trip first.");
-          return;
-        }
-        buildInvoicePreview(sel.value);
-        // printing is controlled by @media print in your CSS
-        window.print();
-      }
-
-      // =========================
-      // Settings
-      // =========================
-      function loadSettingsUI(){
-        // Lists
-        if($("s_companies")) $("s_companies").value = (state.lists.companies||[]).filter(x=>x!=="Select…").join("\n");
-        if($("s_shippers")) $("s_shippers").value = (state.lists.shippers||[]).filter(x=>x!=="Select…").join("\n");
-        if($("s_locations")) $("s_locations").value = (state.lists.locations||[]).filter(x=>x!=="Select…").join("\n");
-        if($("s_tires")) $("s_tires").value = (state.lists.tires||[]).filter(x=>x!=="Select…").join("\n");
-        if($("s_trucks")) $("s_trucks").value = (state.lists.trucks||[]).filter(x=>x!=="Select…").join("\n");
-        if($("s_trailers")) $("s_trailers").value = (state.lists.trailers||[]).filter(x=>x!=="Select…").join("\n");
-        if($("s_customers")) $("s_customers").value = (state.lists.customers||[]).filter(x=>x!=="Select…").join("\n");
-        if($("s_consignees")) $("s_consignees").value = (state.lists.consignees||[]).filter(x=>x!=="Select…").join("\n");
-
-        // Budget categories
-        if($("s_budget_cats")) $("s_budget_cats").value = (state.lists.budgetCats||[]).join("\n");
-
-        // Rates
-        if($("r_tires")) $("r_tires").value = state.rates.tiresPerMile ?? 0;
-        if($("r_maint")) $("r_maint").value = state.rates.maintPerMile ?? 0;
-        if($("r_plates")) $("r_plates").value = state.rates.platesPerMile ?? 0;
-        if($("r_ifta")) $("r_ifta").value = state.rates.iftaPerMile ?? 0;
-        if($("r_tax_pct")) $("r_tax_pct").value = state.rates.taxPctRevenue ?? 0;
-        if($("r_mpg")) $("r_mpg").value = state.rates.targetMPG ?? 6.5;
-
-        // Blueprint
-        const bp = getBlueprint();
-        if($("hh_house")) $("hh_house").value = bp.household.house ?? 1500;
-        if($("hh_utils")) $("hh_utils").value = bp.household.utils ?? 500;
-        if($("hh_car")) $("hh_car").value = bp.household.car ?? 500;
-        if($("hh_food")) $("hh_food").value = bp.household.food ?? 700;
-        if($("hh_gas")) $("hh_gas").value = bp.household.gas ?? 400;
-
-        if($("biz_truck")) $("biz_truck").value = bp.business.truck ?? 1500;
-        if($("biz_trailer")) $("biz_trailer").value = bp.business.trailer ?? 1100;
-        if($("biz_ins")) $("biz_ins").value = bp.business.ins ?? 1500;
-        if($("biz_phone")) $("biz_phone").value = bp.business.phone ?? 150;
-        if($("biz_parking")) $("biz_parking").value = bp.business.parking ?? 300;
-        if($("biz_eld")) $("biz_eld").value = bp.business.eld ?? 25;
-        if($("biz_loadboard")) $("biz_loadboard").value = bp.business.loadboard ?? 169;
-        if($("biz_driver_week")) $("biz_driver_week").value = bp.business.driverWeek ?? 1000;
-
-        if($("bp_month_miles")) $("bp_month_miles").value = bp.miles.month ?? 12500;
-        if($("bp_year_miles")) $("bp_year_miles").value = bp.miles.year ?? 144000;
-        if($("bp_days")) $("bp_days").value = bp.miles.daysAway ?? 2;
-        if($("bp_hours")) $("bp_hours").value = bp.miles.hoursPerLoad ?? 10;
-      }
-
-      function linesToList(text){
-        return (text||"")
-          .split("\n")
-          .map(s=>s.trim())
-          .filter(Boolean);
-      }
-
-      function saveLists(){
-        state.lists.companies = ensureSelect(linesToList($("s_companies")?.value));
-        state.lists.shippers = ensureSelect(linesToList($("s_shippers")?.value));
-        state.lists.locations = ensureSelect(linesToList($("s_locations")?.value));
-        state.lists.tires = ensureSelect(linesToList($("s_tires")?.value));
-        state.lists.trucks = ensureSelect(linesToList($("s_trucks")?.value));
-        state.lists.trailers = ensureSelect(linesToList($("s_trailers")?.value));
-        state.lists.customers = ensureSelect(linesToList($("s_customers")?.value));
-        state.lists.consignees = ensureSelect(linesToList($("s_consignees")?.value));
-
-        saveState();
-        loadTripDropdowns();
-        toast("Lists saved.");
-      }
-
-      function resetLists(){
-        if(!confirm("Reset dropdown lists to defaults?")) return;
-        state.lists = structuredClone(defaults.lists);
-        saveState();
-        loadTripDropdowns();
-        loadSettingsUI();
-        toast("Reset.");
-      }
-
-      function saveRates(){
-        state.rates.tiresPerMile = money(parseFloat($("r_tires")?.value));
-        state.rates.maintPerMile = money(parseFloat($("r_maint")?.value));
-        state.rates.platesPerMile = money(parseFloat($("r_plates")?.value));
-        state.rates.iftaPerMile = money(parseFloat($("r_ifta")?.value));
-        state.rates.taxPctRevenue = money(parseFloat($("r_tax_pct")?.value));
-        state.rates.targetMPG = Math.max(1, money(parseFloat($("r_mpg")?.value)));
-
-        saveState();
-        toast("Rates saved.");
-      }
-
-      function saveBudgetCats(){
-        state.lists.budgetCats = linesToList($("s_budget_cats")?.value);
-        saveState();
-        toast("Categories saved.");
-        loadBudgetUI();
-      }
-
-      function saveBlueprint(){
-        state.blueprint = {
-          household: {
-            house: money(parseFloat($("hh_house")?.value)),
-            utils: money(parseFloat($("hh_utils")?.value)),
-            car: money(parseFloat($("hh_car")?.value)),
-            food: money(parseFloat($("hh_food")?.value)),
-            gas: money(parseFloat($("hh_gas")?.value)),
-          },
-          business: {
-            truck: money(parseFloat($("biz_truck")?.value)),
-            trailer: money(parseFloat($("biz_trailer")?.value)),
-            ins: money(parseFloat($("biz_ins")?.value)),
-            phone: money(parseFloat($("biz_phone")?.value)),
-            parking: money(parseFloat($("biz_parking")?.value)),
-            eld: money(parseFloat($("biz_eld")?.value)),
-            loadboard: money(parseFloat($("biz_loadboard")?.value)),
-            driverWeek: money(parseFloat($("biz_driver_week")?.value)),
-          },
-          miles: {
-            month: Math.max(1, money(parseFloat($("bp_month_miles")?.value))),
-            year: Math.max(1, money(parseFloat($("bp_year_miles")?.value))),
-            daysAway: Math.max(0, money(parseFloat($("bp_days")?.value))),
-            hoursPerLoad: Math.max(0, money(parseFloat($("bp_hours")?.value))),
-          }
-        };
-        saveState();
-        toast("Blueprint saved.");
-        calcBlueprintAndShow();
-      }
-
-      function nukeAll(){
-        if(!confirm("Delete ALL data? Trips, budget, goals, everything. No undo.")) return;
-        if(!confirm("Seriously. Last chance.")) return;
-        localStorage.removeItem(LS_KEY);
-        state = loadState();
-        loadTripDropdowns();
-        clearTripForm();
-        loadBudgetUI();
-        loadSettingsUI();
-        loadInvoicesUI();
-        refreshDashboard();
-        toast("Wiped.");
-      }
-
-      // =========================
-      // Import / Export
-      // =========================
+      // ---------- Export / Import ----------
       function exportData(){
-        const payload = JSON.stringify(state, null, 2);
-        const blob = new Blob([payload], {type:"application/json"});
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `trucking-made-simple-backup-${todayISO()}.json`;
-        document.body.appendChild(a);
+        a.download = "trucking-made-simple-backup.json";
         a.click();
-        a.remove();
         URL.revokeObjectURL(url);
-        toast("Exported.");
+        toast("Exported 📦");
       }
 
       function importData(file){
         const reader = new FileReader();
         reader.onload = ()=>{
           try{
-            const parsed = JSON.parse(String(reader.result||""));
-            // Merge gently so you don't lose future fields
-            const merged = {
-              ...structuredClone(defaults),
-              ...parsed,
-              lists: { ...structuredClone(defaults.lists), ...(parsed.lists||{}) },
-              rates: { ...structuredClone(defaults.rates), ...(parsed.rates||{}) },
-              blueprint: { ...structuredClone(defaults.blueprint), ...(parsed.blueprint||{}) },
-              goals: { ...structuredClone(defaults.goals), ...(parsed.goals||{}) },
-              trips: Array.isArray(parsed.trips) ? parsed.trips : [],
-              budget: parsed.budget || {}
-            };
-            state = merged;
+            const parsed = JSON.parse(reader.result);
+            // Merge into blankState so you don’t import missing fields and break everything
+            const st = blankState();
+            state = Object.assign(st, parsed || {});
+            state.lists = Object.assign(st.lists, parsed?.lists || {});
+            state.rates = Object.assign(st.rates, parsed?.rates || {});
+            state.blueprint = Object.assign(st.blueprint, parsed?.blueprint || {});
+            state.ownerop = Object.assign(st.ownerop, parsed?.ownerop || {});
+            state.ownerop.capsByYear = Object.assign(st.ownerop.capsByYear, parsed?.ownerop?.capsByYear || {});
+            if(!Array.isArray(state.trips)) state.trips = [];
+            if(!state.budget?.byMonth) state.budget = { byMonth: {} };
             saveState();
-            loadTripDropdowns();
+            refreshDropdowns();
             renderTrips();
-            loadBudgetUI();
-            loadSettingsUI();
-            loadInvoicesUI();
-            refreshDashboard();
-            toast("Imported.");
-          } catch(e){
+            refreshInvoiceTripDropdown();
+            toast("Imported ✅");
+          }catch(e){
             console.error(e);
-            toast("Import failed (bad file).");
+            alert("Import failed. File isn’t valid JSON backup.");
           }
         };
         reader.readAsText(file);
       }
 
-      // =========================
-      // Wire Buttons + Init
-      // =========================
-      on("btn_calc","click", ()=> calcTrip());
-      on("btn_save","click", ()=> saveTrip());
-      on("btn_clear","click", ()=> { clearTripForm(); toast("Cleared."); });
+      // ---------- Budget ----------
+      function getBudgetMonthKey(){
+        return safeVal($("b_month")) || new Date().toISOString().slice(0,7);
+      }
 
-      on("searchTrips","input", ()=> renderTrips());
+      function ensureBudgetMonth(key){
+        if(!state.budget.byMonth[key]){
+          state.budget.byMonth[key] = {
+            bufferPct: 15,
+            paychecks: 2,
+            withholdPct: 20,
+            otherIncome: 0,
+            items: []
+          };
+        }
+        return state.budget.byMonth[key];
+      }
 
-      on("btn_export","click", ()=> exportData());
-      on("btn_import","click", ()=> $("importFile")?.click());
-      on("importFile","change", (e)=>{
+      function renderBudget(){
+        const key = getBudgetMonthKey();
+        const m = ensureBudgetMonth(key);
+
+        // sync inputs
+        $("b_buffer").value = m.bufferPct ?? 15;
+        $("b_paychecks").value = String(m.paychecks ?? 2);
+        $("b_withhold").value = m.withholdPct ?? 20;
+        $("b_other_income").value = m.otherIncome ?? 0;
+
+        const list = $("budgetList");
+        list.innerHTML = "";
+
+        const total = (m.items||[]).reduce((a,x)=> a + money(x.amt), 0);
+        const buffer = total * (money(m.bufferPct)/100);
+        const totalBuffered = total + buffer;
+
+        $("k_b_total").textContent = fmtMoney(totalBuffered);
+
+        // Default display until calc is pressed
+        $("k_b_gross").textContent = fmtMoney(0);
+        $("k_b_percheck").textContent = fmtMoney(0);
+        $("k_b_net").textContent = fmtMoney(0);
+
+        if((m.items||[]).length === 0){
+          const s = document.createElement("div");
+          s.className = "small";
+          s.textContent = "No expenses yet for this month.";
+          list.appendChild(s);
+          return;
+        }
+
+        (m.items||[]).forEach(it=>{
+          const row = document.createElement("div");
+          row.className = "item";
+          row.innerHTML = `
+            <div class="itemTop">
+              <div>
+                <div class="itemTitle"><b>${it.cat}</b> <span class="small">${it.note ? "• " + it.note : ""}</span></div>
+                <div class="itemMeta mono">${key}</div>
+              </div>
+              <div class="mono"><b>${fmtMoney(it.amt)}</b></div>
+            </div>
+          `;
+
+          const btns = document.createElement("div");
+          btns.className = "btnRow";
+          const del = document.createElement("button");
+          del.className = "bad";
+          del.type = "button";
+          del.textContent = "🗑️ Remove";
+          del.addEventListener("click", ()=>{
+            m.items = (m.items||[]).filter(x=> x.id !== it.id);
+            saveState();
+            renderBudget();
+            toast("Removed.");
+          });
+          btns.appendChild(del);
+          row.appendChild(btns);
+
+          list.appendChild(row);
+        });
+      }
+
+      function addBudgetExpense(){
+        const key = getBudgetMonthKey();
+        const m = ensureBudgetMonth(key);
+
+        m.bufferPct = numVal($("b_buffer")) || 0;
+        m.paychecks = parseInt(safeVal($("b_paychecks")) || "2", 10);
+        m.withholdPct = numVal($("b_withhold")) || 0;
+        m.otherIncome = numVal($("b_other_income")) || 0;
+
+        const cat = safeVal($("b_cat"));
+        const amt = numVal($("b_amt"));
+        const note = safeVal($("b_note"));
+        if(!cat || cat === "Select…" || amt <= 0){
+          toast("Pick category + amount.");
+          return;
+        }
+
+        m.items.unshift({ id: crypto.randomUUID(), cat, amt, note });
+        saveState();
+        $("b_amt").value = "";
+        $("b_note").value = "";
+        renderBudget();
+        toast("Added ➕");
+      }
+
+      function budgetCalc(){
+        const key = getBudgetMonthKey();
+        const m = ensureBudgetMonth(key);
+
+        m.bufferPct = numVal($("b_buffer")) || 0;
+        m.paychecks = parseInt(safeVal($("b_paychecks")) || "2", 10);
+        m.withholdPct = numVal($("b_withhold")) || 0;
+        m.otherIncome = numVal($("b_other_income")) || 0;
+
+        const total = (m.items||[]).reduce((a,x)=> a + money(x.amt), 0);
+        const buffer = total * (money(m.bufferPct)/100);
+        const totalBuffered = total + buffer;
+
+        const neededNet = Math.max(0, totalBuffered - money(m.otherIncome));
+        const withhold = money(m.withholdPct)/100;
+        const neededGross = withhold < 1 ? (neededNet / (1 - withhold)) : neededNet;
+
+        const perCheck = m.paychecks > 0 ? (neededGross / m.paychecks) : neededGross;
+
+        $("k_b_total").textContent = fmtMoney(totalBuffered);
+        $("k_b_gross").textContent = fmtMoney(neededGross);
+        $("k_b_percheck").textContent = fmtMoney(perCheck);
+        $("k_b_net").textContent = fmtMoney(neededNet);
+
+        saveState();
+      }
+
+      function clearBudgetMonth(){
+        const key = getBudgetMonthKey();
+        if(!confirm(`Clear all expenses for ${key}?`)) return;
+        state.budget.byMonth[key] = {
+          bufferPct: 15,
+          paychecks: 2,
+          withholdPct: 20,
+          otherIncome: 0,
+          items: []
+        };
+        saveState();
+        renderBudget();
+        toast("Cleared.");
+      }
+
+      // ---------- Goals ----------
+      function loadGoalsUI(){
+        const g = state.goals || { bizMonthly:0, personalMonthly:0 };
+        $("g_biz").value = g.bizMonthly || 0;
+        $("g_personal").value = g.personalMonthly || 0;
+      }
+
+      function saveGoals(){
+        state.goals = {
+          bizMonthly: numVal($("g_biz")),
+          personalMonthly: numVal($("g_personal"))
+        };
+        saveState();
+        const msg = $("goalMsg");
+        if(msg) msg.textContent = "Saved ✅";
+        toast("Goals saved");
+      }
+
+      // ---------- Dashboard ----------
+      function refreshDashboardYearDropdown(){
+        const sel = $("d_year");
+        if(!sel) return;
+        const years = new Set(state.trips.map(t=> (t.date||"").slice(0,4)).filter(Boolean));
+        years.add(String(new Date().getFullYear()));
+        const arr = Array.from(years).sort().reverse();
+        sel.innerHTML = "";
+        arr.forEach(y=>{
+          const opt = document.createElement("option");
+          opt.value = y;
+          opt.textContent = y;
+          sel.appendChild(opt);
+        });
+      }
+
+      function computeFixedMonthlyCosts(){
+        // From editable Owner-Op additions lists + blueprint driver toggle
+        const hh = (state.ownerop.householdItems||[]).reduce((a,x)=> a + money(x.amt), 0);
+        const bizBase = (state.ownerop.businessItems||[]).reduce((a,x)=> a + money(x.amt), 0);
+
+        // Also include Blueprint driver wage if enabled (weekly -> monthly approx)
+        const driverOn = !!state.blueprint?.business?.driverOn;
+        const driverWeek = money(state.blueprint?.business?.driverWeek);
+        const driverMonthly = driverOn ? (driverWeek * 4) : 0;
+
+        return { hh, biz: bizBase + driverMonthly, driverMonthly };
+      }
+
+      function refreshBlueprintCard(){
+        const fixed = computeFixedMonthlyCosts();
+        const monthMiles = money(state.blueprint?.miles?.month) || 0;
+        const yearMiles = money(state.blueprint?.miles?.year) || 0;
+        const hoursPerLoad = money(state.blueprint?.miles?.hoursPerLoad) || 0;
+
+        const fixedTotal = fixed.hh + fixed.biz;
+
+        // Required revenue: fixed + rough reserve and tax padding? Keep it simple: fixed only.
+        const required = fixedTotal;
+
+        const otrRPM = monthMiles > 0 ? (required / monthMiles) : 0;
+        const localRPM = 6000 > 0 ? (required / 6000) : 0;
+
+        // Hourly wage while away: use fixed monthly / (loads * hours/load) rough
+        // loads per month approx = monthMiles / 2500 (placeholder). This isn’t physics, it’s budgeting.
+        const loads = monthMiles > 0 ? (monthMiles / 2500) : 0;
+        const hours = loads * (hoursPerLoad || 10);
+        const hourly = hours > 0 ? (required / hours) : 0;
+
+        $("bp_fixed").textContent = fmtMoney(fixedTotal);
+        $("bp_required").textContent = fmtMoney(required);
+        $("bp_otr_rpm").textContent = fmtMoney(otrRPM);
+        $("bp_local_rpm").textContent = fmtMoney(localRPM);
+        $("bp_hourly").textContent = fmtMoney(hourly);
+
+        // caps year dropdown
+        const capSel = $("bp_caps_year");
+        if(capSel){
+          const years = new Set(Object.keys(state.ownerop.capsByYear||{}));
+          years.add(String(new Date().getFullYear()));
+          const arr = Array.from(years).sort().reverse();
+          capSel.innerHTML = "";
+          arr.forEach(y=>{
+            const opt = document.createElement("option");
+            opt.value = y;
+            opt.textContent = y;
+            capSel.appendChild(opt);
+          });
+          capSel.value = getCapsYear();
+        }
+
+        refreshCapsBox();
+      }
+
+      function refreshCapsBox(){
+        const yearStr = getCapsYear();
+        const y = ensureCapsYear(yearStr);
+        const box = $("bp_caps_box");
+        if(!box) return;
+
+        const rows = (state.ownerop.reserves||[]).map(r=>{
+          const funded = money(y[r.id] || 0);
+          const cap = money(r.cap);
+          if(cap > 0){
+            const pct = Math.min(100, (funded / cap) * 100);
+            return `• ${r.name}: ${fmtMoney(funded)} / ${fmtMoney(cap)} (${pct.toFixed(0)}%)`;
+          }
+          return `• ${r.name}: ${fmtMoney(funded)} (no cap)`;
+        });
+
+        box.innerHTML = `<b>Caps Progress (${yearStr})</b><br>${rows.join("<br>")}`;
+      }
+
+      function resetCapsYear(){
+        const yearStr = getCapsYear();
+        if(!confirm(`Reset reserve caps progress for ${yearStr}?`)) return;
+        state.ownerop.capsByYear[yearStr] = {};
+        saveState();
+        refreshCapsBox();
+        toast("Caps reset ♻️");
+      }
+
+      function dashRefresh(){
+        const year = safeVal($("d_year")) || String(new Date().getFullYear());
+        const monthFilter = safeVal($("d_month")); // "YYYY-MM" or ""
+
+        const trips = state.trips.filter(t=>{
+          const y = (t.date||"").slice(0,4);
+          if(y !== year) return false;
+          if(monthFilter){
+            return (t.date||"").slice(0,7) === monthFilter;
+          }
+          return true;
+        });
+
+        const revenue = trips.reduce((a,t)=> a + money(t.revenue), 0);
+        const expenses = trips.reduce((a,t)=> {
+          const r = t.reserves || {};
+          const resTotal = money(r.tiresR)+money(r.maintR)+money(r.platesR)+money(r.iftaR)+money(r.taxR)+money(r.factoringR)+money(r.hwyR)+money(r.usdotR);
+          return a + money(t.fuelCost) + money(t.tolls) + money(t.other) + resTotal;
+        }, 0);
+        const net = revenue - expenses;
+        const miles = trips.reduce((a,t)=> a + money(t.totalMiles), 0);
+
+        $("d_rev").textContent = fmtMoney(revenue);
+        $("d_exp").textContent = fmtMoney(expenses);
+        $("d_net").textContent = fmtMoney(net);
+        $("d_miles").textContent = fmtNum(miles);
+
+        // Insights
+        const ins = $("insights");
+        ins.innerHTML = "";
+        const avgRPM = miles > 0 ? (revenue / miles) : 0;
+        const avgNetRPM = miles > 0 ? (net / miles) : 0;
+
+        const cards = [
+          { t:"Avg Revenue / Mile", v: fmtMoney(avgRPM) },
+          { t:"Avg Net / Mile", v: fmtMoney(avgNetRPM) },
+          { t:"Trips Count", v: String(trips.length) }
+        ];
+
+        cards.forEach(c=>{
+          const d = document.createElement("div");
+          d.className = "item";
+          d.innerHTML = `<div class="itemTitle"><b>${c.t}</b></div><div class="itemMeta mono">${c.v}</div>`;
+          ins.appendChild(d);
+        });
+
+        // Goals compare (bizMonthly vs revenue for selected month if filter, else compare to avg per month-ish)
+        const gBox = $("dashGoalBox");
+        const gOk = $("dashGoalOk");
+        if(gBox) gBox.classList.add("hide");
+        if(gOk) gOk.classList.add("hide");
+
+        const goal = money(state.goals?.bizMonthly);
+        if(goal > 0){
+          let basis = revenue;
+          let label = monthFilter ? monthFilter : year + " (filtered)";
+          if(!monthFilter){
+            // crude estimate: compare YTD revenue vs goal * months covered
+            const monthsCovered = new Set(trips.map(t=> (t.date||"").slice(0,7))).size || 1;
+            const target = goal * monthsCovered;
+            if(revenue < target){
+              gBox.classList.remove("hide");
+              gBox.innerHTML = `<b>Goal gap</b><br>${label}: ${fmtMoney(revenue)} vs target ${fmtMoney(target)} (${monthsCovered} mo).`;
+            }else{
+              gOk.classList.remove("hide");
+              gOk.innerHTML = `<b>Goal on track</b><br>${label}: ${fmtMoney(revenue)} vs target ${fmtMoney(target)}.`;
+            }
+          }else{
+            if(basis < goal){
+              gBox.classList.remove("hide");
+              gBox.innerHTML = `<b>Goal gap</b><br>${monthFilter}: ${fmtMoney(basis)} vs goal ${fmtMoney(goal)}.`;
+            }else{
+              gOk.classList.remove("hide");
+              gOk.innerHTML = `<b>Goal hit</b><br>${monthFilter}: ${fmtMoney(basis)} vs goal ${fmtMoney(goal)}.`;
+            }
+          }
+        }
+
+        refreshBlueprintCard();
+      }
+
+      // ---------- Invoices ----------
+      function refreshInvoiceTripDropdown(){
+        const sel = $("inv_trip");
+        if(!sel) return;
+        sel.innerHTML = "";
+        const opt0 = document.createElement("option");
+        opt0.value = "";
+        opt0.textContent = "Select…";
+        sel.appendChild(opt0);
+
+        state.trips.forEach(t=>{
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = `${t.date} • ${t.pickup || "?"} → ${t.delivery || "?"} • ${fmtMoney(t.revenue)}`;
+          sel.appendChild(opt);
+        });
+      }
+
+      function autoInvoiceNumber(trip){
+        const d = (trip.date||"").replaceAll("-","");
+        const idx = Math.max(1, state.trips.findIndex(x=>x.id===trip.id)+1);
+        return `INV-${d}-${String(idx).padStart(3,"0")}`;
+      }
+
+      function buildInvoiceHTML(trip){
+        const invDate = safeVal($("inv_date")) || todayISO();
+        const invNum = safeVal($("inv_number")) || autoInvoiceNumber(trip);
+
+        const subtotal = money(trip.revenue);
+        const total = subtotal;
+
+        const pickupLine = trip.pickupAddr ? trip.pickupAddr : (trip.pickup||"");
+        const deliveryLine = trip.deliveryAddr ? trip.deliveryAddr : (trip.delivery||"");
+
+        return `
+          <div class="invTop">
+            <div>
+              <div class="invH">INVOICE</div>
+              <div class="invMuted">Invoice #: <b>${invNum}</b><br>Date: <b>${invDate}</b></div>
+            </div>
+            <div class="invMuted" style="text-align:right">
+              <b>${trip.company || "Your Company"}</b><br>
+              Truck: ${trip.truck || "—"} • Trailer: ${trip.trailer || "—"}<br>
+              Reference: ${trip.ref || "—"}
+            </div>
+          </div>
+
+          <div class="invGrid2">
+            <div class="invBlock">
+              <div class="invMuted"><b>Bill To</b></div>
+              <div style="margin-top:6px"><b>${trip.customer || "Broker / Customer"}</b></div>
+              <div class="invMuted" style="margin-top:6px">Consignee: ${trip.consignee || "—"}</div>
+            </div>
+            <div class="invBlock">
+              <div class="invMuted"><b>Shipment Details</b></div>
+              <div class="invMuted" style="margin-top:6px">
+                Shipper: ${trip.shipper || "—"}<br>
+                Pickup: ${pickupLine || "—"}<br>
+                Delivery: ${deliveryLine || "—"}<br>
+                Miles: ${fmtNum(trip.totalMiles)}
+              </div>
+            </div>
+          </div>
+
+          <table class="invTable">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th class="invRight">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Freight Charges (${trip.pickup || "?"} → ${trip.delivery || "?"})</td>
+                <td class="invRight">${fmtMoney(subtotal)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="invTotal">
+            <div class="invTotalBox">
+              <div class="invLine"><span>Subtotal</span><span>${fmtMoney(subtotal)}</span></div>
+              <div class="invLine invBig"><span>Total Due</span><span>${fmtMoney(total)}</span></div>
+            </div>
+          </div>
+
+          <div class="invMuted" style="margin-top:10px">
+            Notes: ${trip.notes ? trip.notes.replaceAll("<","&lt;") : "—"}
+          </div>
+        `;
+      }
+
+      function invoicePreview(){
+        const id = safeVal($("inv_trip"));
+        const box = $("invoicePreview");
+        if(!id){
+          box.innerHTML = `<div class="invMuted">No invoice selected yet.</div>`;
+          return;
+        }
+        const trip = state.trips.find(t=>t.id===id);
+        if(!trip){
+          box.innerHTML = `<div class="invMuted">Trip not found.</div>`;
+          return;
+        }
+        box.innerHTML = buildInvoiceHTML(trip);
+      }
+
+      function invoicePrint(){
+        invoicePreview();
+        window.print();
+      }
+
+      // ---------- Quote Builder ----------
+      function quoteRecalcRPM(){
+        const miles = numVal($("q_miles"));
+        const rate = numVal($("q_rate"));
+        const rpm = miles > 0 ? (rate / miles) : 0;
+        $("q_rpm").value = rpm ? rpm.toFixed(3) : "";
+      }
+
+      function buildQuote(){
+        const broker = safeVal($("q_broker"));
+        const email = safeVal($("q_email"));
+        const pu = safeVal($("q_pickup"));
+        const del = safeVal($("q_delivery"));
+        const miles = numVal($("q_miles"));
+        const rate = numVal($("q_rate"));
+        const rpm = miles > 0 ? (rate / miles) : 0;
+        const notes = safeVal($("q_notes"));
+
+        $("q_rpm").value = rpm ? rpm.toFixed(3) : "";
+
+        const text =
+`Subject: Rate Quote ${pu || "Pickup"} → ${del || "Delivery"}
+
+Hi ${broker && broker !== "Select…" ? broker : "there"},
+
+I can cover:
+• Lane: ${pu || "—"} → ${del || "—"}
+• Total miles: ${miles ? fmtNum(miles) : "—"}
+• All-in rate: ${rate ? fmtMoney(rate) : "—"} (${rpm ? rpm.toFixed(3) : "0.000"}/mi)
+
+${notes ? ("Notes: " + notes) : ""}
+
+Thank you,`;
+
+        $("q_out").value = text;
+        toast("Quote built ✉️");
+      }
+
+      function copyQuote(){
+        const txt = $("q_out").value || "";
+        if(!txt){ toast("Nothing to copy."); return; }
+        navigator.clipboard.writeText(txt).then(()=> toast("Copied 📋")).catch(()=> {
+          $("q_out").select();
+          document.execCommand("copy");
+          toast("Copied (fallback) 📋");
+        });
+      }
+
+      function emailQuote(){
+        const to = encodeURIComponent(safeVal($("q_email")));
+        const body = encodeURIComponent($("q_out").value || "");
+        const subjectLine = ($("q_out").value || "").split("\n")[0].replace("Subject:","").trim();
+        const subject = encodeURIComponent(subjectLine || "Rate Quote");
+        const href = `mailto:${to}?subject=${subject}&body=${body}`;
+        window.location.href = href;
+      }
+
+      // ---------- Settings: Lists + Rates + Blueprint ----------
+      function loadSettingsUI(){
+        // lists textareas
+        $("s_companies").value = (state.lists.companies||[]).filter(x=>x!=="Select…").join("\n");
+        $("s_shippers").value = (state.lists.shippers||[]).filter(x=>x!=="Select…").join("\n");
+        $("s_locations").value = (state.lists.locations||[]).filter(x=>x!=="Select…").join("\n");
+        $("s_tires").value = (state.lists.tires||[]).filter(x=>x!=="Select…").join("\n");
+        $("s_trucks").value = (state.lists.trucks||[]).filter(x=>x!=="Select…").join("\n");
+        $("s_trailers").value = (state.lists.trailers||[]).filter(x=>x!=="Select…").join("\n");
+        $("s_customers").value = (state.lists.customers||[]).filter(x=>x!=="Select…").join("\n");
+        $("s_consignees").value = (state.lists.consignees||[]).filter(x=>x!=="Select…").join("\n");
+        $("s_budget_cats").value = (state.lists.budgetCats||[]).filter(x=>x!=="Select…").join("\n");
+
+        // rates
+        $("r_tires").value = state.rates.tiresPerMile;
+        $("r_maint").value = state.rates.maintPerMile;
+        $("r_plates").value = state.rates.platesPerMile;
+        $("r_ifta").value = state.rates.iftaPerMile;
+        $("r_tax_pct").value = state.rates.taxPctRevenue;
+        $("r_mpg").value = state.rates.targetMPG;
+        $("r_fuel_cpg").value = state.rates.defaultFuelCPG;
+        $("r_hours_road").value = state.rates.defaultHoursRoad;
+
+        // blueprint
+        const bp = state.blueprint;
+        $("hh_house").value = bp.household.house;
+        $("hh_utils").value = bp.household.utils;
+        $("hh_car").value = bp.household.car;
+        $("hh_food").value = bp.household.food;
+        $("hh_gas").value = bp.household.gas;
+        $("hh_ent").value = bp.household.ent ?? 0;
+
+        $("biz_truck").value = bp.business.truck;
+        $("biz_trailer").value = bp.business.trailer;
+        $("biz_ins").value = bp.business.ins;
+        $("biz_phone").value = bp.business.phone;
+        $("biz_parking").value = bp.business.parking;
+        $("biz_eld").value = bp.business.eld;
+        $("biz_loadboard").value = bp.business.loadboard;
+        $("biz_driver_week").value = bp.business.driverWeek ?? 0;
+        $("biz_driver_on").value = (bp.business.driverOn ? "on" : "off");
+
+        $("bp_month_miles").value = bp.miles.month;
+        $("bp_year_miles").value = bp.miles.year;
+        $("bp_days").value = bp.miles.daysAway;
+        $("bp_hours").value = bp.miles.hoursPerLoad;
+
+        // ownerop additions lists
+        renderOwnerOpLists();
+        refreshBlueprintCard();
+      }
+
+      function parseLines(str){
+        return (str||"")
+          .split("\n")
+          .map(s=> s.trim())
+          .filter(Boolean);
+      }
+
+      function saveLists(){
+        state.lists.companies = ["Select…", ...parseLines($("s_companies").value)];
+        state.lists.shippers  = ["Select…", ...parseLines($("s_shippers").value)];
+        state.lists.locations = ["Select…", ...parseLines($("s_locations").value)];
+        state.lists.tires     = ["Select…", ...parseLines($("s_tires").value)];
+        state.lists.trucks    = ["Select…", ...parseLines($("s_trucks").value)];
+        state.lists.trailers  = ["Select…", ...parseLines($("s_trailers").value)];
+        state.lists.customers = ["Select…", ...parseLines($("s_customers").value)];
+        state.lists.consignees= ["Select…", ...parseLines($("s_consignees").value)];
+        state.lists.budgetCats= parseLines($("s_budget_cats").value);
+
+        saveState();
+        refreshDropdowns();
+        toast("Lists saved ✅");
+      }
+
+      function resetLists(){
+        if(!confirm("Reset dropdown lists to defaults?")) return;
+        state.lists = structuredClone(defaults.lists);
+        saveState();
+        refreshDropdowns();
+        loadSettingsUI();
+        toast("Reset.");
+      }
+
+      function saveRates(){
+        state.rates = {
+          tiresPerMile: numVal($("r_tires")),
+          maintPerMile: numVal($("r_maint")),
+          platesPerMile: numVal($("r_plates")),
+          iftaPerMile: numVal($("r_ifta")),
+          taxPctRevenue: numVal($("r_tax_pct")),
+          targetMPG: numVal($("r_mpg")),
+          defaultFuelCPG: numVal($("r_fuel_cpg")),
+          defaultHoursRoad: numVal($("r_hours_road"))
+        };
+        saveState();
+        toast("Rates saved ✅");
+      }
+
+      function saveBlueprint(){
+        state.blueprint = {
+          household: {
+            house: numVal($("hh_house")),
+            utils: numVal($("hh_utils")),
+            car: numVal($("hh_car")),
+            food: numVal($("hh_food")),
+            gas: numVal($("hh_gas")),
+            ent: numVal($("hh_ent"))
+          },
+          business: {
+            truck: numVal($("biz_truck")),
+            trailer: numVal($("biz_trailer")),
+            ins: numVal($("biz_ins")),
+            phone: numVal($("biz_phone")),
+            parking: numVal($("biz_parking")),
+            eld: numVal($("biz_eld")),
+            loadboard: numVal($("biz_loadboard")),
+            driverWeek: numVal($("biz_driver_week")),
+            driverOn: safeVal($("biz_driver_on")) === "on"
+          },
+          miles: {
+            month: numVal($("bp_month_miles")),
+            year: numVal($("bp_year_miles")),
+            daysAway: numVal($("bp_days")),
+            hoursPerLoad: numVal($("bp_hours"))
+          }
+        };
+        saveState();
+        refreshBlueprintCard();
+        toast("Blueprint saved ✅");
+      }
+
+      // ---------- Owner-Op Additions UI ----------
+      function miniItemRow(item, onChange, onDelete){
+        const row = document.createElement("div");
+        row.className = "miniRow";
+
+        const left = document.createElement("div");
+        left.innerHTML = `<div class="name"><b>${item.name}</b></div><div class="tag">Monthly</div>`;
+
+        const amt = document.createElement("input");
+        amt.type = "number";
+        amt.min = "0";
+        amt.step = "0.01";
+        amt.value = money(item.amt);
+        amt.addEventListener("input", ()=>{
+          item.amt = numVal(amt);
+          onChange();
+        });
+
+        const right = document.createElement("div");
+        right.className = "right";
+        const rename = document.createElement("input");
+        rename.type = "text";
+        rename.value = item.name;
+        rename.placeholder = "Name";
+        rename.addEventListener("input", ()=>{
+          item.name = safeVal(rename) || item.name;
+          left.querySelector(".name").innerHTML = `<b>${item.name}</b>`;
+          onChange();
+        });
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "bad";
+        del.textContent = "🗑️";
+        del.addEventListener("click", onDelete);
+
+        right.appendChild(rename);
+        right.appendChild(del);
+
+        row.appendChild(left);
+        row.appendChild(amt);
+        row.appendChild(right);
+        return row;
+      }
+
+      function reserveRow(res, onChange, onDelete){
+        const row = document.createElement("div");
+        row.className = "resRow";
+
+        const nm = document.createElement("div");
+        nm.innerHTML = `<div class="nm"><b>${res.name}</b></div><div class="cap">Revenue % + yearly cap</div>`;
+
+        const pct = document.createElement("input");
+        pct.type = "number"; pct.min="0"; pct.step="0.1";
+        pct.value = money(res.pct);
+        pct.title = "Percent of revenue";
+        pct.addEventListener("input", ()=>{ res.pct = numVal(pct); onChange(); });
+
+        const cap = document.createElement("input");
+        cap.type = "number"; cap.min="0"; cap.step="0.01";
+        cap.value = money(res.cap);
+        cap.title = "Yearly cap (0 = no cap)";
+        cap.addEventListener("input", ()=>{ res.cap = numVal(cap); onChange(); });
+
+        const cont = document.createElement("select");
+        cont.innerHTML = `
+          <option value="stop">Stop after cap</option>
+          <option value="keep">Continue after cap</option>
+        `;
+        cont.value = res.continueAfterCap ? "keep" : "stop";
+        cont.addEventListener("change", ()=>{ res.continueAfterCap = cont.value === "keep"; onChange(); });
+
+        const tog = document.createElement("div");
+        tog.className = "tog";
+
+        const en = document.createElement("button");
+        en.type = "button";
+        en.className = res.enabled ? "good" : "warn";
+        en.textContent = res.enabled ? "Enabled" : "Disabled";
+        en.addEventListener("click", ()=>{
+          res.enabled = !res.enabled;
+          en.className = res.enabled ? "good" : "warn";
+          en.textContent = res.enabled ? "Enabled" : "Disabled";
+          onChange();
+        });
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "bad";
+        del.textContent = "🗑️";
+        del.addEventListener("click", onDelete);
+
+        tog.appendChild(en);
+        tog.appendChild(del);
+
+        row.appendChild(nm);
+        row.appendChild(pct);
+        row.appendChild(cap);
+        row.appendChild(cont);
+        row.appendChild(tog);
+        return row;
+      }
+
+      function renderOwnerOpLists(){
+        // Household list
+        const hhWrap = $("hh_list");
+        hhWrap.innerHTML = "";
+        (state.ownerop.householdItems||[]).forEach(it=>{
+          hhWrap.appendChild(
+            miniItemRow(it,
+              ()=>{ saveState(); refreshBlueprintCard(); },
+              ()=>{
+                state.ownerop.householdItems = state.ownerop.householdItems.filter(x=>x.id!==it.id);
+                saveState(); renderOwnerOpLists(); refreshBlueprintCard();
+              }
+            )
+          );
+        });
+
+        // Business list
+        const bizWrap = $("biz_list");
+        bizWrap.innerHTML = "";
+        (state.ownerop.businessItems||[]).forEach(it=>{
+          bizWrap.appendChild(
+            miniItemRow(it,
+              ()=>{ saveState(); refreshBlueprintCard(); },
+              ()=>{
+                state.ownerop.businessItems = state.ownerop.businessItems.filter(x=>x.id!==it.id);
+                saveState(); renderOwnerOpLists(); refreshBlueprintCard();
+              }
+            )
+          );
+        });
+
+        // Reserves list
+        const resWrap = $("res_list");
+        resWrap.innerHTML = "";
+        (state.ownerop.reserves||[]).forEach(r=>{
+          resWrap.appendChild(
+            reserveRow(r,
+              ()=>{ saveState(); refreshCapsBox(); },
+              ()=>{
+                if(!confirm(`Delete reserve "${r.name}"?`)) return;
+                state.ownerop.reserves = state.ownerop.reserves.filter(x=>x.id!==r.id);
+                saveState();
+                renderOwnerOpLists();
+                refreshCapsBox();
+              }
+            )
+          );
+        });
+      }
+
+      function addHHItem(){
+        state.ownerop.householdItems.push({ id: crypto.randomUUID(), name: "New Household Expense", amt: 0 });
+        saveState();
+        renderOwnerOpLists();
+        toast("Added.");
+      }
+
+      function addBizItem(){
+        state.ownerop.businessItems.push({ id: crypto.randomUUID(), name: "New Business Expense", amt: 0 });
+        saveState();
+        renderOwnerOpLists();
+        toast("Added.");
+      }
+
+      function resetReserveDefaults(){
+        if(!confirm("Reset reserve % + caps to defaults?")) return;
+        state.ownerop.reserves = structuredClone(defaults.ownerop.reserves);
+        saveState();
+        renderOwnerOpLists();
+        refreshCapsBox();
+        toast("Reset.");
+      }
+
+      function saveOwnerOpAdditions(){
+        // everything is already live-edited; this just commits + celebrates
+        saveState();
+        refreshBlueprintCard();
+        toast("Owner-Op additions saved ✅");
+      }
+
+      // ---------- Nuke ----------
+      function nukeAll(){
+        if(!confirm("Delete ALL data? This cannot be undone.")) return;
+        if(!confirm("Seriously. This wipes trips, budget, goals. Proceed?")) return;
+        localStorage.removeItem(LS_KEY);
+        state = blankState();
+        saveState();
+        refreshDropdowns();
+        clearTripForm();
+        renderTrips();
+        renderBudget();
+        loadGoalsUI();
+        refreshInvoiceTripDropdown();
+        refreshDashboardYearDropdown();
+        refreshBlueprintCard();
+        toast("All data deleted 🧨");
+      }
+
+      // ---------- Wire up events ----------
+      // default dates
+      if($("t_date")) $("t_date").value = todayISO();
+      if($("t_calendar")) $("t_calendar").value = todayISO();
+      if($("b_month")) $("b_month").value = new Date().toISOString().slice(0,7);
+
+      refreshDropdowns();
+      renderTrips();
+      renderBudget();
+      loadGoalsUI();
+      refreshInvoiceTripDropdown();
+      refreshDashboardYearDropdown();
+      refreshBlueprintCard();
+
+      $("btn_calc").addEventListener("click", ()=> { computeTripNumbers(); toast("Calculated 🧮"); });
+      $("btn_save").addEventListener("click", saveTrip);
+      $("btn_clear").addEventListener("click", ()=> { clearTripForm(); toast("Cleared."); });
+
+      $("searchTrips").addEventListener("input", renderTrips);
+
+      $("btn_export").addEventListener("click", exportData);
+      $("btn_import").addEventListener("click", ()=> $("importFile").click());
+      $("importFile").addEventListener("change", (e)=>{
         const f = e.target.files?.[0];
         if(f) importData(f);
         e.target.value = "";
       });
 
-      on("b_month","change", ()=> loadBudgetUI());
-      on("btn_add_exp","click", ()=> addExpense());
-      on("btn_budget_calc","click", ()=> { budgetCalc(); toast("Calculated."); });
-      on("btn_budget_clear","click", ()=> clearBudgetMonth());
-      on("b_buffer","input", ()=> budgetCalc());
-      on("b_paychecks","change", ()=> budgetCalc());
-      on("b_withhold","input", ()=> budgetCalc());
-      on("b_other_income","input", ()=> budgetCalc());
-
-      on("btn_save_goals","click", ()=> saveGoals());
-
-      on("btn_dash","click", ()=> refreshDashboard());
-      on("d_year","change", ()=> refreshDashboard());
-      on("d_month","change", ()=> refreshDashboard());
-
-      on("inv_trip","change", (e)=> buildInvoicePreview(e.target.value));
-      on("btn_inv_preview","click", ()=> {
-        const id = $("inv_trip")?.value;
-        if(!id){ toast("Select a trip first."); return; }
-        buildInvoicePreview(id);
+      // Auto fuel cost calc on input
+      ["t_fuel_gal","t_fuel_cpg","t_loaded_miles","t_deadhead_miles","t_revenue","t_tolls","t_other","t_hours_road"].forEach(id=>{
+        const el = $(id);
+        if(el) el.addEventListener("input", ()=> computeTripNumbers());
       });
-      on("btn_inv_print","click", ()=> printInvoice());
 
-      on("btn_save_lists","click", ()=> saveLists());
-      on("btn_reset_lists","click", ()=> resetLists());
-      on("btn_save_rates","click", ()=> saveRates());
-      on("btn_save_budget_cats","click", ()=> saveBudgetCats());
-      on("btn_blueprint_save","click", ()=> saveBlueprint());
-      on("btn_nuke","click", ()=> nukeAll());
+      // Budget
+      $("b_month").addEventListener("change", renderBudget);
+      $("btn_add_exp").addEventListener("click", addBudgetExpense);
+      $("btn_budget_calc").addEventListener("click", budgetCalc);
+      $("btn_budget_clear").addEventListener("click", clearBudgetMonth);
 
-      // initial UI
-      loadTripDropdowns();
-      if($("t_date")) $("t_date").value = todayISO();
-      updateTripKPIs(readTripForm());
-      renderTrips();
-      loadBudgetUI();
-      loadInvoicesUI();
-      loadSettingsUI();
-      refreshDashboard();
+      // Goals
+      $("btn_save_goals").addEventListener("click", saveGoals);
 
+      // Dashboard
+      $("btn_dash").addEventListener("click", dashRefresh);
+      $("d_year").addEventListener("change", dashRefresh);
+      $("d_month").addEventListener("change", dashRefresh);
+
+      // Blueprint card controls
+      $("btn_jump_settings").addEventListener("click", ()=> setTab("settings"));
+      $("bp_caps_year").addEventListener("change", refreshCapsBox);
+      $("btn_reset_caps_year").addEventListener("click", resetCapsYear);
+
+      // Invoices
+      $("btn_inv_preview").addEventListener("click", invoicePreview);
+      $("btn_inv_print").addEventListener("click", invoicePrint);
+
+      // Quote builder
+      $("q_miles").addEventListener("input", quoteRecalcRPM);
+      $("q_rate").addEventListener("input", quoteRecalcRPM);
+      $("btn_quote_build").addEventListener("click", buildQuote);
+      $("btn_quote_copy").addEventListener("click", copyQuote);
+      $("btn_quote_email").addEventListener("click", emailQuote);
+
+      // Settings
+      $("btn_save_lists").addEventListener("click", saveLists);
+      $("btn_reset_lists").addEventListener("click", resetLists);
+
+      $("btn_save_rates").addEventListener("click", saveRates);
+      $("btn_blueprint_save").addEventListener("click", saveBlueprint);
+
+      $("btn_hh_add").addEventListener("click", addHHItem);
+      $("btn_biz_add").addEventListener("click", addBizItem);
+      $("btn_resets_defaults").addEventListener("click", resetReserveDefaults);
+      $("btn_ownerop_save").addEventListener("click", saveOwnerOpAdditions);
+
+      $("btn_save_budget_cats").addEventListener("click", saveLists); // categories are part of lists
+
+      $("btn_nuke").addEventListener("click", nukeAll);
+
+      // Make sure settings reflect saved state when first opened
+      // (Not loading immediately avoids a bunch of DOM churn on first paint)
       setStatus("✅ Ready");
       console.log("SCRIPT READY");
-    } catch(err){
-      console.error("Init failed:", err);
-      setStatus("❌ Init Error (Console)");
+    } catch (err) {
+      console.error("Init Error:", err);
+      setStatus("❌ Error (open Console)");
     }
   });
 </script>
+
 </body>
 </html>
